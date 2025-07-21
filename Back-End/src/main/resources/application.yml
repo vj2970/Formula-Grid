@@ -1,17 +1,3 @@
-server:
-  port: 8989
-
 spring:
-  application:
-    name: formulaGrid
-
-  security:
-    user:
-      name: admin
-      password: admin
-
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: FormulaGridDB
+    profiles:
+        active: dev
