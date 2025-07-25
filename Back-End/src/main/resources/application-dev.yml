@@ -5,11 +5,6 @@ spring:
   application:
     name: formulaGrid
 
-  security:
-    user:
-      name: admin
-      password: admin
-
   data:
     mongodb:
       host: localhost

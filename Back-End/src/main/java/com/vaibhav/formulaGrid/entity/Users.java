@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Document(collection = "users")
 public class Users {
 
-    private enum Role {ROLE_ADMIN, ROLE_USER};
+    public enum Role {ROLE_ADMIN, ROLE_USER};
 
     @Id
     private String id;
@@ -29,6 +29,13 @@ public class Users {
     public static class Name{
         private String first;
         private String last;
+    }
+
+
+    public String getRole() {
+        // TODO Auto-generated method stub
+        if(role == Role.ROLE_ADMIN) return "ADMIN";
+        else return "USER";
     }
 
 }
