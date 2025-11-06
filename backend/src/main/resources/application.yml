@@ -1,0 +1,20 @@
+spring:
+    application:
+        name: formula-grid
+
+    data:
+        mongodb:
+            uri: mongodb://localhost:27017/formula-grid
+
+server:
+    port: 5900
+
+logging:
+    level:
+        com.formulagrid: DEBUG
+        org.springframework: DEBUG
+
+f1:
+    ergast-api:
+        base-url: https://ergast.com/api/f1/
+        timeout: 10000

@@ -1,0 +1,11 @@
+spring:
+    profiles: dev
+    data:
+        mongodb:
+            uri: mongodb://localhost:27017/formula-grid-dev
+
+
+logging:
+  level:
+    com.formulagrid: DEBUG
+    
