@@ -9,7 +9,7 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
-
+s
 # Package Files #
 *.jar
 *.war
@@ -25,5 +25,5 @@ replay_pid*
 
 #ide files
 .vscode/
-.ide/
+.idea/
 .DS_Store

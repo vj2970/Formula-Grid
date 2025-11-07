@@ -2,6 +2,7 @@ package com.formulagrid.FormulaGrid.controller;
 
 import java.util.List;
 
+import com.formulagrid.FormulaGrid.service.DriverService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,15 +20,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DriverController {
 
-    private final DriverRepository driverRepository;
+    private final DriverService driverService;
 
     @GetMapping
-    public ResponseEntity<List<Driver>> getAllDrivers() {
-        return ResponseEntity.ok(driverRepository.findAll());
+    public ResponseEntity<List<Driver>> getCurrentSeasonDrivers(){
+        return ResponseEntity.ok(driverService.getCurrentSeasonDrivers());
     }
 
-    @PostMapping
-    public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {
-        return ResponseEntity.ok(driverRepository.save(driver));
+    @PostMapping("/refresh")
+    public ResponseEntity<List<Driver>> refreshDrivers(){
+        return ResponseEntity.ok(driverService.fetchAndSaveDriversFromApi());
     }
 }
