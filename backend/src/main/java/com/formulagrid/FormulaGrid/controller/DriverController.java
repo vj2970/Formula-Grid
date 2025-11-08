@@ -2,6 +2,7 @@ package com.formulagrid.FormulaGrid.controller;
 
 import java.util.List;
 
+import com.formulagrid.FormulaGrid.model.DriverStanding;
 import com.formulagrid.FormulaGrid.service.DriverService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,4 +32,15 @@ public class DriverController {
     public ResponseEntity<List<Driver>> refreshDrivers(){
         return ResponseEntity.ok(driverService.fetchAndSaveDriversFromApi());
     }
+
+    @GetMapping("/standings")
+    public ResponseEntity<List<DriverStanding>> getCurrentSeasonDriverStandings(){
+        return ResponseEntity.ok(driverService.getCurrentSeasonDriverStandings());
+    }
+
+    @PostMapping("/standings/refresh")
+    public ResponseEntity<List<DriverStanding>> refreshDriverStandings(){
+        return ResponseEntity.ok(driverService.fetchAndSaveDriverStandingsFromApi());
+    }
+
 }

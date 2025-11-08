@@ -51,4 +51,5 @@ public class JoplicaApiClient {
                 .doOnError(error -> log.error("Error fetching races: {}", error.getMessage()));
     }
 
+
 }
