@@ -1,0 +1,64 @@
+package com.formulagrid.FormulaGrid.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class JoplicaConstructorStandingsResponse {
+
+    @JsonProperty("MRData")
+    private MRData mrData;
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class MRData{
+        @JsonProperty("StandingsTable")
+        private StandingsTable standingsTable;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class StandingsTable{
+        private String season;
+
+        @JsonProperty("StandingsLists")
+        private List<StandingsList> standingsLists;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class StandingsList{
+        private String season;
+        private String round;
+
+        @JsonProperty("ConstructorStandings")
+        private List<ConstructorStandingInfo> constructorStandings;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ConstructorStandingInfo{
+        private String position;
+        private String positionText;
+        private String points;
+        private String wins;
+
+        @JsonProperty("Constructor")
+        private ConstructorInfo contructor;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ConstructorInfo{
+        private String constructorId;
+        private String name;
+        private String nationality;
+        private String url;
+    }
+
+
+}

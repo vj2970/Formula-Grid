@@ -35,4 +35,12 @@ public class JoplicaApiClient {
                 .doOnError(error -> log.error("Error fetching drivers: {}", error.getMessage()));
     }
 
+    public Mono<String> getCurrentSeasonConstructorStandings(){
+        return webClient.get()
+                .uri("/current/constructorStandings.json")
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> log.error("Error fetching constructor standings: {}", error.getMessage()));
+    }
+
 }

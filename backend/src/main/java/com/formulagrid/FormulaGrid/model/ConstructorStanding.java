@@ -20,6 +20,7 @@ public class ConstructorStanding {
     private Integer position;
     private String positionText;
     private Integer points;
+    private Integer wins;
     private Constructor constructor;
 
 }
