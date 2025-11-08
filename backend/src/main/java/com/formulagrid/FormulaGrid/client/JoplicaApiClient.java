@@ -21,7 +21,7 @@ public class JoplicaApiClient {
 
     public Mono<String> getCurrentSeasonDriverStandings(){
         return webClient.get()
-                .uri("/2025/driverStandings.json")
+                .uri("/current/driverStandings.json")
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching driver standings: {}", error.getMessage()));
@@ -29,7 +29,7 @@ public class JoplicaApiClient {
 
     public Mono<String> getCurrentSeasonDrivers(){
         return webClient.get()
-                .uri("/2025/drivers.json")
+                .uri("/current/drivers.json")
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching drivers: {}", error.getMessage()));
@@ -41,6 +41,14 @@ public class JoplicaApiClient {
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching constructor standings: {}", error.getMessage()));
+    }
+
+    public Mono<String> getCurrentSeasonRaces(){
+        return webClient.get()
+                .uri("/current.json")
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> log.error("Error fetching races: {}", error.getMessage()));
     }
 
 }
