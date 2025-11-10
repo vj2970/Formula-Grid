@@ -7,11 +7,11 @@ spring:
             uri: ${MONGODB_URI:mongodb://localhost:27017/formula-grid}
 
 server:
-    port: ${port:5900}
+    port: ${PORT:8080}
 
 logging:
     level:
-        com.formulagrid: ${LOG_LEVEL:INFO}
+        com.formulagrid: INFO
         com.springframework.web: WARN
 
 f1:
