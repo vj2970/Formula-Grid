@@ -5,6 +5,7 @@ import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
 import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
 import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverResponse;
 import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverStandingsResponse;
+import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Constructor;
 import com.formulagrid.FormulaGrid.model.Driver;
 import com.formulagrid.FormulaGrid.model.DriverStanding;
@@ -58,7 +59,7 @@ public class DriverService {
             return drivers;
         } catch (Exception e) {
             log.error("Error fetching drivers from API", e);
-            throw new RuntimeException("Failed to fetch drivers", e);
+            throw new ExternalApiException("Failed to fetch drivers from Joplica API", e);
         }
     }
 
@@ -111,7 +112,7 @@ public class DriverService {
             return standings;
         } catch (Exception e) {
             log.error("Error fetching driver standings from API", e);
-            throw new RuntimeException("Failed to fetch driver standings", e);
+            throw new ExternalApiException("Failed to fetch drivers standings from Joplica API", e);
         }
     }
 

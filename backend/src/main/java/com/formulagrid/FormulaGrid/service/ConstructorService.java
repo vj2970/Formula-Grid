@@ -3,6 +3,7 @@ package com.formulagrid.FormulaGrid.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
 import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
+import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Constructor;
 import com.formulagrid.FormulaGrid.model.ConstructorStanding;
 import com.formulagrid.FormulaGrid.repository.ConstructorRepository;
@@ -65,7 +66,7 @@ public class ConstructorService {
 
         } catch (Exception e) {
             log.error("Error fetching constructor standings from API", e);
-            throw new RuntimeException("Failed to fetch constructor standings", e);
+            throw new ExternalApiException("Failed to fetch constructor standings from Joplica API", e);
         }
     }
 

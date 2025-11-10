@@ -3,6 +3,7 @@ package com.formulagrid.FormulaGrid.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
 import com.formulagrid.FormulaGrid.dto.response.JoplicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Circuit;
 import com.formulagrid.FormulaGrid.model.Race;
 import com.formulagrid.FormulaGrid.repository.RaceRepository;
@@ -53,7 +54,7 @@ public class RaceService {
             return races;
         } catch (Exception e) {
             log.error("Error fetching races from API", e);
-            throw new RuntimeException("Failed to fetch races", e);
+            throw new ExternalApiException("Failed to fetch races from Joplica API", e);
         }
     }
 
