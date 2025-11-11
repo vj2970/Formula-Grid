@@ -4,17 +4,21 @@ spring:
 
     data:
         mongodb:
-            uri: mongodb://localhost:27017/formula-grid
+            uri: ${MONGODB_URI:mongodb://localhost:27017/formula-grid}
 
 server:
-    port: 5900
+    port: ${PORT:8080}
 
 logging:
     level:
-        com.formulagrid: DEBUG
-        org.springframework: DEBUG
+        com.formulagrid: INFO
+        com.springframework.web: WARN
 
 f1:
     joplica-api:
         base-url: https://api.jolpi.ca/ergast/f1/
-        timeout: 10000
+        timeout: 5000
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,formula-grid-backend-production.up.railway.app}
+
