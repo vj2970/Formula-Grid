@@ -51,7 +51,7 @@ A RESTful API providing real-time Formula 1 statistics, standings, race calendar
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/f1-stats-backend.git
+   git clone https://github.com/vj2970/Formula-Grid.git
    cd f1-stats-backend
    ```
 
