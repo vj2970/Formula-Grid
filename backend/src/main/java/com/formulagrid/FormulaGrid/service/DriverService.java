@@ -2,10 +2,7 @@ package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
-import com.formulagrid.FormulaGrid.dto.response.DriverStatisticsDTO;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverStandingsResponse;
+import com.formulagrid.FormulaGrid.dto.response.*;
 import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.*;
 import com.formulagrid.FormulaGrid.repository.*;
@@ -276,6 +273,78 @@ public class DriverService {
                 .last5Wins(last5Wins)
                 .last5Podiums(last5Podiums)
                 .last5AvgPosition(Math.round(last5AvgPosition * 100.0) / 100.0)
+                .build();
+    }
+
+    public DriverComparisonDTO compareDrivers(String driverId1, String driverId2){
+        //Get Statistics for both drivers
+        DriverStatisticsDTO stats1 = getDriverStatistics(driverId1);
+        DriverStatisticsDTO stats2 = getDriverStatistics(driverId2);
+
+        //Get Races where both competed
+        List<RaceResult> driver1Races = raceResultRepository
+                .findByDriver_DriverIdOrderBySeasonDescRoundDesc(driverId1);
+        List<RaceResult> driver2Races = raceResultRepository
+                .findByDriver_DriverIdOrderBySeasonDescRoundDesc(driverId2);
+
+        //Find Common races
+        DriverComparisonDTO.HeadToHeadStats h2h = calculateHeadToHead(driver1Races, driver2Races, driverId1, driverId2);
+
+        return DriverComparisonDTO.builder()
+                .driver1(stats1)
+                .driver2(stats2)
+                .headToHead(h2h)
+                .build();
+    }
+
+    //Calculate head-to-head statistics
+    private DriverComparisonDTO.HeadToHeadStats calculateHeadToHead(
+            List<RaceResult> driver1Races,
+            List<RaceResult> driver2Races,
+            String driverId1,
+            String driverId2){
+
+        int totalMet = 0;
+        int driver1Wins = 0;
+        int driver2Wins = 0;
+        int driver1Ahead = 0;
+        int driver2Ahead = 0;
+        int totalPositions1 = 0;
+        int totalPositions2 = 0;
+
+        //Find races where both competed
+        for (RaceResult race1 : driver1Races){
+            RaceResult race2 = driver2Races.stream()
+                    .filter(r -> r.getSeason().equals(race1.getSeason())
+                            && r.getRound().equals(race1.getRound()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (race2 != null){
+                totalMet++;
+
+                if (race1.getPosition() == 1) driver1Wins++;
+                if (race2.getPosition() == 1) driver2Wins++;
+
+                if (race1.getPosition() < race2.getPosition()) driver1Ahead++;
+                if (race2.getPosition() < race1.getPosition()) driver2Ahead++;
+
+                totalPositions1 += race1.getPosition();
+                totalPositions2 += race2.getPosition();
+            }
+        }
+
+        double avgPosition1 = totalMet > 0 ? (double) totalPositions1 / totalMet: 0.0;
+        double avgPosition2 = totalMet > 0 ? (double) totalPositions2 / totalMet: 0.0;
+
+        return DriverComparisonDTO.HeadToHeadStats.builder()
+                .totalRacesMet(totalMet)
+                .driver1Wins(driver1Wins)
+                .driver2Wins(driver2Wins)
+                .driver1AheadCount(driver1Ahead)
+                .driver2AheadCount(driver2Ahead)
+                .driver1AvgPosition(Math.round(avgPosition1 * 100.0) / 100.0)
+                .driver2AvgPosition(Math.round(avgPosition2 * 100.0) / 100.0)
                 .build();
     }
 

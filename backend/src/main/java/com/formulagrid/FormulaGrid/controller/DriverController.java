@@ -2,6 +2,7 @@ package com.formulagrid.FormulaGrid.controller;
 
 import java.util.List;
 
+import com.formulagrid.FormulaGrid.dto.response.DriverComparisonDTO;
 import com.formulagrid.FormulaGrid.dto.response.DriverStatisticsDTO;
 import com.formulagrid.FormulaGrid.model.DriverStanding;
 import com.formulagrid.FormulaGrid.service.DriverService;
@@ -44,6 +45,14 @@ public class DriverController {
     @GetMapping("/{driverId}/statistics")
     public ResponseEntity<DriverStatisticsDTO> getDriverStatistics(@PathVariable String driverId){
         return ResponseEntity.ok(driverService.getDriverStatistics(driverId));
+    }
+
+    //Compare two drivers
+    @GetMapping("/compare/{driverId1}/{driverId2}")
+    public ResponseEntity<DriverComparisonDTO> compareDrivers(
+            @PathVariable String driverId1,
+            @PathVariable String driverId2){
+        return ResponseEntity.ok(driverService.compareDrivers(driverId1, driverId2));
     }
 
 }
