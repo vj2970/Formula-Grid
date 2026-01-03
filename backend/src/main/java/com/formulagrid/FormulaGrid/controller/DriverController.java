@@ -2,14 +2,11 @@ package com.formulagrid.FormulaGrid.controller;
 
 import java.util.List;
 
+import com.formulagrid.FormulaGrid.dto.response.DriverStatisticsDTO;
 import com.formulagrid.FormulaGrid.model.DriverStanding;
 import com.formulagrid.FormulaGrid.service.DriverService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.formulagrid.FormulaGrid.model.Driver;
 import com.formulagrid.FormulaGrid.repository.DriverRepository;
@@ -41,6 +38,12 @@ public class DriverController {
     @PostMapping("/standings/refresh")
     public ResponseEntity<List<DriverStanding>> refreshDriverStandings(){
         return ResponseEntity.ok(driverService.fetchAndSaveDriverStandingsFromApi());
+    }
+
+    //Get comprehensive driver statistics
+    @GetMapping("/{driverId}/statistics")
+    public ResponseEntity<DriverStatisticsDTO> getDriverStatistics(@PathVariable String driverId){
+        return ResponseEntity.ok(driverService.getDriverStatistics(driverId));
     }
 
 }
