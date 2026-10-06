@@ -29,7 +29,7 @@ public class DriverService {
 
     public Driver getDriverByDriverId(String driverId) {
         return driverRepository.findByDriverId(driverId)
-                .orElseThrow(() -> new DriverNotFoundException("Driver not found: " + driverId));
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found: " + driverId));
     }
 
     public List<Driver> getCurrentSeasonDrivers(){
