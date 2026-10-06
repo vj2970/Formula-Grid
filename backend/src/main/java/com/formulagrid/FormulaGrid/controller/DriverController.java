@@ -26,6 +26,11 @@ public class DriverController {
         return ResponseEntity.ok(driverService.getCurrentSeasonDrivers());
     }
 
+    @GetMapping("/{driverId}")
+    public ResponseEntity<Driver> getDriverByDriverId(@PathVariable String driverId) {
+        return ResponseEntity.ok(driverService.getDriverByDriverId(driverId));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<List<Driver>> refreshDrivers(){
         return ResponseEntity.ok(driverService.fetchAndSaveDriversFromApi());

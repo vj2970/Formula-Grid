@@ -27,6 +27,11 @@ public class DriverService {
     private final RaceResultRepository raceResultRepository;
     private final QualifyingResultRepository qualifyingResultRepository;
 
+    public Driver getDriverByDriverId(String driverId) {
+        return driverRepository.findByDriverId(driverId)
+                .orElseThrow(() -> new DriverNotFoundException("Driver not found: " + driverId));
+    }
+
     public List<Driver> getCurrentSeasonDrivers(){
 
         //Check for drivers in DB first
