@@ -11,6 +11,7 @@ import com.formulagrid.FormulaGrid.repository.ConstructorStandingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
 
 import java.time.Year;
 import java.util.List;
@@ -26,6 +27,16 @@ public class ConstructorService {
     private final JoplicaApiClient joplicaApiClient;
     private final ObjectMapper objectMapper;
 
+    public List<Constructor> getCurrentSeasonConstructors() {
+        return getCurrentSeasonStandings().stream()
+                .map(ConstructorStanding::getConstructor)
+                .collect(Collectors.toList());
+    }
+
+    public Constructor getConstructorByConstructorId(String constructorId) {
+        return constructorRepository.findByConstructorId(constructorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Constructor not found: " + constructorId));
+    }
 
     public List<ConstructorStanding> getCurrentSeasonStandings(){
         Integer currentSeason = Year.now().getValue();

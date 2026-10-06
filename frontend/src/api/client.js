@@ -7,7 +7,8 @@ const client = axios.create({
 
 export const getDrivers = () => client.get("/api/drivers");
 export const getDriverById = (id) => client.get(`/api/drivers/${id}`);
-export const getConstructors = () => client.get("/api/constructors");
-export const getStandings = (season) => client.get(`/api/standings/${season}`);
+export const getConstructors = () => client.get('/api/constructors');
+export const getConstructorById = (id) => client.get(`/api/constructors/${id}`);
+export const getStandings = (season) => client.get('/api/drivers/standings');
 
 export default client;

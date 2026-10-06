@@ -19,6 +19,16 @@ public class ConstructorController {
 
     private final ConstructorService constructorService;
 
+    @GetMapping
+    public ResponseEntity<List<Constructor>> getCurrentSeasonConstructors() {
+        return ResponseEntity.ok(constructorService.getCurrentSeasonConstructors());
+    }
+
+    @GetMapping("/{constructorId}")
+    public ResponseEntity<Constructor> getConstructorByConstructorId(@PathVariable String constructorId) {
+        return ResponseEntity.ok(constructorService.getConstructorByConstructorId(constructorId));
+    }
+
     @GetMapping("/standings")
     public ResponseEntity<List<ConstructorStanding>> getCurrentSeasonStandings(){
         return ResponseEntity.ok(constructorService.getCurrentSeasonStandings());
