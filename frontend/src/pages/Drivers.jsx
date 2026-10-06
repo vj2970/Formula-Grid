@@ -18,11 +18,9 @@ function Drivers() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
-      <h1>Drivers</h1>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        <p1>Number of drivers: {drivers.length}</p1>
-        <br />
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-gray-900">Drivers</h1>
+      <div className="flex flex-wrap">
         {drivers.map((driver) => (
           <DriverCard key={driver.driverId} driver={driver} />
         ))}

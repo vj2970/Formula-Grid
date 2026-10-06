@@ -27,3 +27,6 @@ replay_pid*
 .vscode/
 .idea/
 .DS_Store
+
+#Environment files
+*.env

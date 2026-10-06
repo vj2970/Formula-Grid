@@ -18,9 +18,13 @@ function Standings() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
-      <h1>Driver Standings</h1>
-      <StandingsTable standings={standings} />
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-gray-900">
+        Driver Standings
+      </h1>
+      <div className="overflow-x-auto">
+        <StandingsTable standings={standings} />
+      </div>
     </div>
   );
 }

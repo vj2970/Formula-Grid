@@ -20,28 +20,38 @@ function DriverDetail() {
   if (!driver) return <p>Driver not found.</p>;
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Link to="/">&larr; Back to Drivers</Link>
-      <h1>
+    <div className="p-6 max-w-xl">
+      <Link to="/" className="text-blue-600 hover:underline">
+        &larr; Back to Drivers
+      </Link>
+      <h1 className="text-3xl font-bold mt-4 mb-2 text-gray-900">
         {driver.givenName} {driver.familyName}
       </h1>
-      <p>
-        <strong>Code:</strong> {driver.code}
-      </p>
-      <p>
-        <strong>Number:</strong> {driver.permanentNumber ?? "N/A"}
-      </p>
-      <p>
-        <strong>Nationality:</strong> {driver.nationality}
-      </p>
-      <p>
-        <strong>Date of Birth:</strong> {driver.dateOfBirth}
-      </p>
-      <p>
-        <a href={driver.url} target="_blank" rel="noreferrer">
-          Wikipedia
-        </a>
-      </p>
+      <div className="space-y-1 text-gray-700">
+        <p>
+          <span className="font-semibold">Code:</span> {driver.code}
+        </p>
+        <p>
+          <span className="font-semibold">Number:</span>{" "}
+          {driver.permanentNumber ?? "N/A"}
+        </p>
+        <p>
+          <span className="font-semibold">Nationality:</span>{" "}
+          {driver.nationality}
+        </p>
+        <p>
+          <span className="font-semibold">Date of Birth:</span>{" "}
+          {driver.dateOfBirth}
+        </p>
+      </div>
+      <a
+        href={driver.url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-600 hover:underline mt-3 inline-block"
+      >
+        Wikipedia
+      </a>
     </div>
   );
 }
