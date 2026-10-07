@@ -26,7 +26,7 @@ A RESTful API providing real-time Formula 1 statistics, standings, race calendar
 
 ### Backend
 - **Framework:** [Spring Boot 3.2](https://spring.io/projects/spring-boot)
-- **Language:** Java 17
+- **Language:** Java 25
 - **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas)
 - **HTTP Client:** Spring WebFlux (WebClient)
 - **Data Source:** [Jolpica F1 API](https://api.jolpi.ca/ergast/f1) (Ergast replacement)
@@ -42,7 +42,7 @@ A RESTful API providing real-time Formula 1 statistics, standings, race calendar
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Java** 17 or higher
+- **Java** 25 or higher
 - **Maven** 3.6+
 - **MongoDB Atlas** account (free)
 - **Git**
