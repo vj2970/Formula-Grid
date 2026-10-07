@@ -1,8 +1,8 @@
 package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.client.JolpicaApiClient;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaRaceScheduleResponse;
 import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Circuit;
 import com.formulagrid.FormulaGrid.model.Race;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class RaceService {
 
     private final RaceRepository raceRepository;
-    private final JoplicaApiClient joplicaApiClient;
+    private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
 
     public List<Race> getCurrentSeasonRaces(){
@@ -35,17 +35,17 @@ public class RaceService {
             return races;
         }
 
-        log.info("Fetching races from Joplica API");
+        log.info("Fetching races from Jolpica API");
         return fetchAndSaveRacesFromApi();
     }
 
     public List<Race> fetchAndSaveRacesFromApi(){
         try {
-            String response = joplicaApiClient.getCurrentSeasonRaces().block();
-            JoplicaRaceScheduleResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaRaceScheduleResponse.class);
+            String response = jolpicaApiClient.getCurrentSeasonRaces().block();
+            JolpicaRaceScheduleResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaRaceScheduleResponse.class);
 
-            List<Race> races = joplicaResponse.getMrData().getRaceTable().getRaces().stream()
+            List<Race> races = jolpicaResponse.getMrData().getRaceTable().getRaces().stream()
                     .map(this::converToRace)
                     .collect(Collectors.toList());
 
@@ -55,11 +55,11 @@ public class RaceService {
             return races;
         } catch (Exception e) {
             log.error("Error fetching races from API", e);
-            throw new ExternalApiException("Failed to fetch races from Joplica API", e);
+            throw new ExternalApiException("Failed to fetch races from Jolpica API", e);
         }
     }
 
-    private Race converToRace(JoplicaRaceScheduleResponse.RaceInfo raceInfo){
+    private Race converToRace(JolpicaRaceScheduleResponse.RaceInfo raceInfo){
         Race race = new Race();
         race.setSeason(Integer.parseInt(raceInfo.getSeason()));
         race.setRound(Integer.parseInt(raceInfo.getRound()));
@@ -74,7 +74,7 @@ public class RaceService {
         if (raceInfo.getFirstPractice() != null){
             race.setFirstPracticeDate(LocalDate.parse(raceInfo.getFirstPractice().getDate()));
             if (raceInfo.getFirstPractice().getTime() != null){
-                race.setTime(parseTimeOrNull(raceInfo.getFirstPractice().getTime()));
+                race.setFirstPracticeTime(parseTimeOrNull(raceInfo.getFirstPractice().getTime()));
             }
         }
         if (raceInfo.getQualifying() != null) {
@@ -98,7 +98,7 @@ public class RaceService {
         return race;
     }
 
-    private Circuit convertToCircuit(JoplicaRaceScheduleResponse.CircuitInfo circuitInfo) {
+    private Circuit convertToCircuit(JolpicaRaceScheduleResponse.CircuitInfo circuitInfo) {
         Circuit circuit = new Circuit();
         circuit.setCircuitId(circuitInfo.getCircuitId());
         circuit.setCircuitName(circuitInfo.getCircuitName());

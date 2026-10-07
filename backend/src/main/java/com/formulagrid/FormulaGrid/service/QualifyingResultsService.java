@@ -1,11 +1,12 @@
 package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaQualifyingResultsResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.client.JolpicaApiClient;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaConstructorStandingsResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaDriverResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaQualifyingResultsResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Circuit;
 import com.formulagrid.FormulaGrid.model.Constructor;
 import com.formulagrid.FormulaGrid.model.Driver;
@@ -28,7 +29,7 @@ public class QualifyingResultsService {
     private final QualifyingResultRepository qualifyingResultRepository;
     private final DriverRepository driverRepository;
     private final ConstructorRepository constructorRepository;
-    private final JoplicaApiClient joplicaApiClient;
+    private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -83,23 +84,22 @@ public class QualifyingResultsService {
      */
     private List<QualifyingResult> fetchAndSaveQualifyingResults(Integer season, Integer round) {
         try {
-            String response = joplicaApiClient.getQualifyingResults(season, round).block();
-            JoplicaQualifyingResultsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaQualifyingResultsResponse.class);
+            String response = jolpicaApiClient.getQualifyingResults(season, round).block();
+            JolpicaQualifyingResultsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaQualifyingResultsResponse.class);
 
-            if (joplicaResponse.getMrData().getRaceTable().getRaces().isEmpty()) {
+            if (jolpicaResponse.getMrData().getRaceTable().getRaces().isEmpty()) {
                 log.warn("No qualifying results available for season {} round {}", season, round);
                 return List.of();
             }
 
-            JoplicaQualifyingResultsResponse.RaceInfo raceInfo =
-                    joplicaResponse.getMrData().getRaceTable().getRaces().get(0);
+            JolpicaQualifyingResultsResponse.RaceInfo raceInfo =
+                    jolpicaResponse.getMrData().getRaceTable().getRaces().get(0);
 
             List<QualifyingResult> results = raceInfo.getQualifyingResults().stream()
                     .map(qualInfo -> convertToQualifyingResult(qualInfo, raceInfo))
                     .collect(Collectors.toList());
 
-            qualifyingResultRepository.deleteAll();
             qualifyingResultRepository.saveAll(results);
             log.info("Saved {} qualifying results for season {} round {}",
                     results.size(), season, round);
@@ -107,7 +107,7 @@ public class QualifyingResultsService {
             return results;
         } catch (Exception e) {
             log.error("Error fetching qualifying results from API", e);
-            throw new RuntimeException("Failed to fetch qualifying results", e);
+            throw new ExternalApiException("Failed to fetch qualifying results", e);
         }
     }
 
@@ -115,8 +115,8 @@ public class QualifyingResultsService {
      * Convert to QualifyingResult model
      */
     private QualifyingResult convertToQualifyingResult(
-            JoplicaQualifyingResultsResponse.QualifyingInfo qualInfo,
-            JoplicaQualifyingResultsResponse.RaceInfo raceInfo) {
+            JolpicaQualifyingResultsResponse.QualifyingInfo qualInfo,
+            JolpicaQualifyingResultsResponse.RaceInfo raceInfo) {
 
         QualifyingResult result = new QualifyingResult();
 
@@ -137,7 +137,7 @@ public class QualifyingResultsService {
     }
 
     // Helper methods (same as RaceResultService)
-    private Circuit convertToCircuit(JoplicaRaceScheduleResponse.CircuitInfo circuitInfo) {
+    private Circuit convertToCircuit(JolpicaRaceScheduleResponse.CircuitInfo circuitInfo) {
         Circuit circuit = new Circuit();
         circuit.setCircuitId(circuitInfo.getCircuitId());
         circuit.setCircuitName(circuitInfo.getCircuitName());
@@ -153,7 +153,7 @@ public class QualifyingResultsService {
         return circuit;
     }
 
-    private Driver saveOrGetDriver(JoplicaDriverResponse.DriverInfo driverInfo) {
+    private Driver saveOrGetDriver(JolpicaDriverResponse.DriverInfo driverInfo) {
         return driverRepository.findByDriverId(driverInfo.getDriverId())
                 .orElseGet(() -> {
                     Driver driver = new Driver();
@@ -170,7 +170,7 @@ public class QualifyingResultsService {
     }
 
     private Constructor saveOrGetConstructor(
-            JoplicaConstructorStandingsResponse.ConstructorInfo constructorInfo) {
+            JolpicaConstructorStandingsResponse.ConstructorInfo constructorInfo) {
         return constructorRepository.findByConstructorId(constructorInfo.getConstructorId())
                 .orElseGet(() -> {
                     Constructor constructor = new Constructor();

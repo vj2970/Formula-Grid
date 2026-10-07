@@ -1,11 +1,12 @@
 package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaDriverResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaRaceResultsResponse;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.client.JolpicaApiClient;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaConstructorStandingsResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaDriverResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaRaceResultsResponse;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaRaceScheduleResponse;
+import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Circuit;
 import com.formulagrid.FormulaGrid.model.Constructor;
 import com.formulagrid.FormulaGrid.model.Driver;
@@ -28,7 +29,7 @@ public class RaceResultService {
     private final RaceResultRepository raceResultRepository;
     private final DriverRepository driverRepository;
     private final ConstructorRepository constructorRepository;
-    private final JoplicaApiClient joplicaApiClient;
+    private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -53,15 +54,15 @@ public class RaceResultService {
      */
     public List<RaceResult> getLastRaceResults(){
         try{
-            String response = joplicaApiClient.getLastRaceResults().block();
-            JoplicaRaceResultsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaRaceResultsResponse.class);
-            if(joplicaResponse.getMrData().getRaceTable().getRaces().isEmpty()){
+            String response = jolpicaApiClient.getLastRaceResults().block();
+            JolpicaRaceResultsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaRaceResultsResponse.class);
+            if(jolpicaResponse.getMrData().getRaceTable().getRaces().isEmpty()){
                 log.warn("No last race results available");
                 return List.of();
             }
-            JoplicaRaceResultsResponse.RaceInfo raceInfo =
-                    joplicaResponse.getMrData().getRaceTable().getRaces().get(0);
+            JolpicaRaceResultsResponse.RaceInfo raceInfo =
+                    jolpicaResponse.getMrData().getRaceTable().getRaces().get(0);
 
             Integer season = Integer.parseInt(raceInfo.getSeason());
             Integer round = Integer.parseInt(raceInfo.getRound());
@@ -80,7 +81,7 @@ public class RaceResultService {
 
         } catch (Exception e) {
             log.error("Error fetching last race results", e);
-            throw new RuntimeException("Failed to fetch last race results", e);
+            throw new ExternalApiException("Failed to fetch last race results", e);
         }
     }
 
@@ -121,7 +122,7 @@ public class RaceResultService {
      */
     public List<RaceResult> getDriverPodiums(String driverId){
         return raceResultRepository
-                .findByDriver_DriverIdAndPositionOrderBySeasonDescRoundDesc(driverId, 3);
+                .findByDriver_DriverIdAndPositionLessThanEqualOrderBySeasonDescRoundDesc(driverId, 3);
     }
 
     /**
@@ -144,15 +145,15 @@ public class RaceResultService {
      */
     private List<RaceResult> fetchAndSaveRaceResults(Integer season, Integer round){
         try{
-            String response = joplicaApiClient.getRaceResults(season, round).block();
-            JoplicaRaceResultsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaRaceResultsResponse.class);
-            if(joplicaResponse.getMrData().getRaceTable().getRaces().isEmpty()){
+            String response = jolpicaApiClient.getRaceResults(season, round).block();
+            JolpicaRaceResultsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaRaceResultsResponse.class);
+            if(jolpicaResponse.getMrData().getRaceTable().getRaces().isEmpty()){
                 log.warn("No race results available for season {} round {}", season, round);
                 return List.of();
             }
-            JoplicaRaceResultsResponse.RaceInfo raceInfo =
-                    joplicaResponse.getMrData().getRaceTable().getRaces().get(0);
+            JolpicaRaceResultsResponse.RaceInfo raceInfo =
+                    jolpicaResponse.getMrData().getRaceTable().getRaces().get(0);
 
             List<RaceResult> results = parseRaceResults(raceInfo);
             raceResultRepository.saveAll(results);
@@ -163,7 +164,7 @@ public class RaceResultService {
 
         } catch (Exception e) {
             log.error("Error fetching race results from API", e);
-            throw new RuntimeException("Failed to fetch race results", e);
+            throw new ExternalApiException("Failed to fetch race results", e);
         }
     }
 
@@ -172,11 +173,11 @@ public class RaceResultService {
      */
     private List<RaceResult> fetchAndSaveSeasonRaceResults(Integer season){
         try{
-            String response = joplicaApiClient.getSeasonRaceResults(season).block();
-            JoplicaRaceResultsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaRaceResultsResponse.class);
+            String response = jolpicaApiClient.getSeasonRaceResults(season).block();
+            JolpicaRaceResultsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaRaceResultsResponse.class);
 
-            List<RaceResult> allResults = joplicaResponse.getMrData()
+            List<RaceResult> allResults = jolpicaResponse.getMrData()
                     .getRaceTable()
                     .getRaces()
                     .stream()
@@ -188,14 +189,14 @@ public class RaceResultService {
             return allResults;
         } catch (Exception e) {
             log.error("Error fetching season race results from API", e);
-            throw new RuntimeException("Failed to fetch season race results", e);
+            throw new ExternalApiException("Failed to fetch season race results", e);
         }
     }
 
     /**
      * Parse race results from Ergast response
      */
-    private List<RaceResult> parseRaceResults(JoplicaRaceResultsResponse.RaceInfo raceInfo){
+    private List<RaceResult> parseRaceResults(JolpicaRaceResultsResponse.RaceInfo raceInfo){
         return raceInfo.getResults().stream()
                 .map(resultInfo -> convertToRaceResult(resultInfo, raceInfo))
                 .collect(Collectors.toList());
@@ -205,8 +206,8 @@ public class RaceResultService {
      * Convert Ergast result to RaceResult model
      */
     private RaceResult convertToRaceResult(
-            JoplicaRaceResultsResponse.ResultInfo resultInfo,
-            JoplicaRaceResultsResponse.RaceInfo raceInfo){
+            JolpicaRaceResultsResponse.ResultInfo resultInfo,
+            JolpicaRaceResultsResponse.RaceInfo raceInfo){
         RaceResult result = new RaceResult();
 
         // Race info
@@ -255,7 +256,7 @@ public class RaceResultService {
     /**
      *Convert circuit info (reuse from RaceService if needed)
      */
-    private Circuit convertToCircuit(JoplicaRaceScheduleResponse.CircuitInfo circuitInfo) {
+    private Circuit convertToCircuit(JolpicaRaceScheduleResponse.CircuitInfo circuitInfo) {
         Circuit circuit = new Circuit();
         circuit.setCircuitId(circuitInfo.getCircuitId());
         circuit.setCircuitName(circuitInfo.getCircuitName());
@@ -274,7 +275,7 @@ public class RaceResultService {
     /**
      * Save or get existing driver
      */
-    private Driver saveOrGetDriver(JoplicaDriverResponse.DriverInfo driverInfo) {
+    private Driver saveOrGetDriver(JolpicaDriverResponse.DriverInfo driverInfo) {
         return driverRepository.findByDriverId(driverInfo.getDriverId())
                 .orElseGet(() -> {
                     Driver driver = new Driver();
@@ -294,7 +295,7 @@ public class RaceResultService {
      * Save or get existing constructor
      */
     private Constructor saveOrGetConstructor(
-            JoplicaConstructorStandingsResponse.ConstructorInfo constructorInfo) {
+            JolpicaConstructorStandingsResponse.ConstructorInfo constructorInfo) {
         return constructorRepository.findByConstructorId(constructorInfo.getConstructorId())
                 .orElseGet(() -> {
                     Constructor constructor = new Constructor();

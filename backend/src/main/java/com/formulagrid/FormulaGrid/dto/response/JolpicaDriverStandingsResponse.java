@@ -8,8 +8,7 @@ import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class JoplicaConstructorStandingsResponse {
-
+public class JolpicaDriverStandingsResponse {
     @JsonProperty("MRData")
     private MRData mrData;
 
@@ -35,30 +34,23 @@ public class JoplicaConstructorStandingsResponse {
         private String season;
         private String round;
 
-        @JsonProperty("ConstructorStandings")
-        private List<ConstructorStandingInfo> constructorStandings;
+        @JsonProperty("DriverStandings")
+        private List<DriverStandingInfo> driverStandings;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ConstructorStandingInfo{
+    public static class DriverStandingInfo{
         private String position;
         private String positionText;
         private String points;
         private String wins;
 
-        @JsonProperty("Constructor")
-        private ConstructorInfo contructor;
-    }
+        @JsonProperty("Driver")
+        private JolpicaDriverResponse.DriverInfo driver;
 
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ConstructorInfo{
-        private String constructorId;
-        private String name;
-        private String nationality;
-        private String url;
+        @JsonProperty("Constructors")
+        private List<JolpicaConstructorStandingsResponse.ConstructorInfo> constructor;
     }
-
 
 }
