@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
 import Drivers from "./pages/Drivers";
 import DriverDetail from "./pages/DriverDetail";
 import Standings from "./pages/Standings";
@@ -11,7 +12,8 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Drivers />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/drivers" element={<Drivers />} />
         <Route path="/drivers/:driverId" element={<DriverDetail />} />
         <Route path="/standings" element={<Standings />} />
         <Route path="/constructors" element={<Constructors />} />
