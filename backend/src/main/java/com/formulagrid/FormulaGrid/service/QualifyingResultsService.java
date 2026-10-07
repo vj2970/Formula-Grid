@@ -99,6 +99,7 @@ public class QualifyingResultsService {
                     .map(qualInfo -> convertToQualifyingResult(qualInfo, raceInfo))
                     .collect(Collectors.toList());
 
+            qualifyingResultRepository.deleteAll();
             qualifyingResultRepository.saveAll(results);
             log.info("Saved {} qualifying results for season {} round {}",
                     results.size(), season, round);

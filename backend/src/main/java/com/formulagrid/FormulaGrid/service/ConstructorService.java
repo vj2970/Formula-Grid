@@ -70,6 +70,7 @@ public class ConstructorService {
                             Integer.parseInt(standingsList.getRound())))
                     .collect(Collectors.toList());
 
+            standingRepository.deleteAll();
             standingRepository.saveAll(standings);
             log.info("Saved {} constructor standings to database", standings.size());
 

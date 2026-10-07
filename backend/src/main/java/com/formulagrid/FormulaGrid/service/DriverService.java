@@ -37,13 +37,14 @@ public class DriverService {
 
         //Check for drivers in DB first
         List<Driver> driversFromDb = driverRepository.findAll();
+        log.info("Drivers found in DB: {}", driversFromDb.size());
         if(!driversFromDb.isEmpty()){
             log.info("Returning {} drivers from database", driversFromDb.size());
             return driversFromDb;
         }
 
         //Fetch drivers from API if not in DB
-        log.info("Fetching drivers from Ergast API");
+        log.info("Fetching drivers from Joplica API");
         return fetchAndSaveDriversFromApi();
     }
 
@@ -56,6 +57,7 @@ public class DriverService {
                     .map(this::convertToDriver)
                     .collect(Collectors.toList());
 
+            driverRepository.deleteAll();
             driverRepository.saveAll(drivers);
             log.info("Saved {} drivers to database", drivers.size());
             return drivers;
@@ -82,7 +84,7 @@ public class DriverService {
         Integer currentSeason = Year.now().getValue();
         List<DriverStanding> standings = driverStandingRepository.findBySeasonOrderByPositionAsc(currentSeason);
         if(!standings.isEmpty()){
-            log.info("Returnin {} driver standings from database", standings.size());
+            log.info("Returning {} driver standings from database", standings.size());
             return standings;
         }
 
@@ -108,6 +110,7 @@ public class DriverService {
                     Integer.parseInt(standingsList.getRound())))
                     .collect(Collectors.toList());
 
+            driverStandingRepository.deleteAll();
             driverStandingRepository.saveAll(standings);
             log.info("Saved {} driver standings to database", standings.size());
 
@@ -215,11 +218,11 @@ public class DriverService {
         //Current season stats
         List<RaceResult> currentSeasonRaces = allRaces.stream()
                 .filter(r -> r.getSeason().equals(currentSeason))
-                .collect(Collectors.toList());
+                .toList();
 
         List<QualifyingResult> currentSeasonQualifying = allQualifying.stream()
                 .filter(q -> q.getSeason().equals(currentSeason))
-                .collect(Collectors.toList());
+                .toList();
 
         int currentSeasonRaceCount = currentSeasonRaces.size();
         int currentSeasonWins = (int) currentSeasonRaces.stream()
@@ -232,7 +235,7 @@ public class DriverService {
         //Last 5 races
         List<RaceResult> last5Races = allRaces.stream()
                 .limit(5)
-                .collect(Collectors.toList());
+                .toList();
 
         int last5Count = last5Races.size();
         int last5Wins = (int) last5Races.stream()
@@ -294,7 +297,7 @@ public class DriverService {
                 .findByDriver_DriverIdOrderBySeasonDescRoundDesc(driverId2);
 
         //Find Common races
-        DriverComparisonDTO.HeadToHeadStats h2h = calculateHeadToHead(driver1Races, driver2Races, driverId1, driverId2);
+        DriverComparisonDTO.HeadToHeadStats h2h = calculateHeadToHead(driver1Races, driver2Races);
 
         return DriverComparisonDTO.builder()
                 .driver1(stats1)
@@ -306,9 +309,7 @@ public class DriverService {
     //Calculate head-to-head statistics
     private DriverComparisonDTO.HeadToHeadStats calculateHeadToHead(
             List<RaceResult> driver1Races,
-            List<RaceResult> driver2Races,
-            String driverId1,
-            String driverId2){
+            List<RaceResult> driver2Races){
 
         int totalMet = 0;
         int driver1Wins = 0;

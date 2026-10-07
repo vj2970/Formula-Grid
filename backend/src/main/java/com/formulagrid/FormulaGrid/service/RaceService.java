@@ -49,6 +49,7 @@ public class RaceService {
                     .map(this::converToRace)
                     .collect(Collectors.toList());
 
+            raceRepository.deleteAll();
             raceRepository.saveAll(races);
             log.info("Saved {} races to database", races.size());
             return races;
