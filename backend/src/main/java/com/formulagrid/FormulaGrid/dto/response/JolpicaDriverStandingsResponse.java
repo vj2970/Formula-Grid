@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class JoplicaDriverStandingsResponse {
+public class JolpicaDriverStandingsResponse {
     @JsonProperty("MRData")
     private MRData mrData;
 
@@ -47,10 +47,10 @@ public class JoplicaDriverStandingsResponse {
         private String wins;
 
         @JsonProperty("Driver")
-        private JoplicaDriverResponse.DriverInfo driver;
+        private JolpicaDriverResponse.DriverInfo driver;
 
         @JsonProperty("Constructors")
-        private List<JoplicaConstructorStandingsResponse.ConstructorInfo> constructor;
+        private List<JolpicaConstructorStandingsResponse.ConstructorInfo> constructor;
     }
 
 }

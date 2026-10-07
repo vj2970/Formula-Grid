@@ -1,8 +1,8 @@
 package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
-import com.formulagrid.FormulaGrid.dto.response.JoplicaConstructorStandingsResponse;
+import com.formulagrid.FormulaGrid.client.JolpicaApiClient;
+import com.formulagrid.FormulaGrid.dto.response.JolpicaConstructorStandingsResponse;
 import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.Constructor;
 import com.formulagrid.FormulaGrid.model.ConstructorStanding;
@@ -24,7 +24,7 @@ public class ConstructorService {
     
     private final ConstructorRepository constructorRepository;
     private final ConstructorStandingRepository standingRepository;
-    private final JoplicaApiClient joplicaApiClient;
+    private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
 
     public List<Constructor> getCurrentSeasonConstructors() {
@@ -53,17 +53,17 @@ public class ConstructorService {
 
     public List<ConstructorStanding> fetchAndSaveStandingsFromApi(){
         try {
-            String response = joplicaApiClient.getCurrentSeasonConstructorStandings().block();
-            JoplicaConstructorStandingsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaConstructorStandingsResponse.class);
+            String response = jolpicaApiClient.getCurrentSeasonConstructorStandings().block();
+            JolpicaConstructorStandingsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaConstructorStandingsResponse.class);
 
-            if(joplicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
+            if(jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
                 log.warn("No standings data available");
                 return List.of();
             }
 
-            JoplicaConstructorStandingsResponse.StandingsList standingsList =
-                    joplicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
+            JolpicaConstructorStandingsResponse.StandingsList standingsList =
+                    jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
 
             List<ConstructorStanding> standings = standingsList.getConstructorStandings().stream()
                     .map(s -> convertToConstructorStanding(s, Integer.parseInt(standingsList.getSeason()),
@@ -78,12 +78,12 @@ public class ConstructorService {
 
         } catch (Exception e) {
             log.error("Error fetching constructor standings from API", e);
-            throw new ExternalApiException("Failed to fetch constructor standings from Joplica API", e);
+            throw new ExternalApiException("Failed to fetch constructor standings from Jolpica API", e);
         }
     }
 
     private ConstructorStanding convertToConstructorStanding(
-            JoplicaConstructorStandingsResponse.ConstructorStandingInfo standingInfo,
+            JolpicaConstructorStandingsResponse.ConstructorStandingInfo standingInfo,
             Integer season, Integer round){
 
         Constructor constructor = saveOrGetConstructor(standingInfo.getContructor());
@@ -99,7 +99,7 @@ public class ConstructorService {
         return standing;
     }
 
-    private Constructor saveOrGetConstructor(JoplicaConstructorStandingsResponse.ConstructorInfo constructorInfo){
+    private Constructor saveOrGetConstructor(JolpicaConstructorStandingsResponse.ConstructorInfo constructorInfo){
         return constructorRepository.findByConstructorId(constructorInfo.getConstructorId())
                 .orElseGet(() -> {
                     Constructor newConstructor = new Constructor();

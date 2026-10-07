@@ -11,13 +11,13 @@ import java.time.Year;
 
 @Slf4j
 @Component
-public class JoplicaApiClient {
+public class JolpicaApiClient {
 
     private final WebClient webClient;
 
     private final Integer current = Year.now().getValue();
 
-    public JoplicaApiClient(@Value("${f1.joplica-api.base-url}") String baseUrl){
+    public JolpicaApiClient(@Value("${f1.jolpica-api.base-url}") String baseUrl){
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .build();

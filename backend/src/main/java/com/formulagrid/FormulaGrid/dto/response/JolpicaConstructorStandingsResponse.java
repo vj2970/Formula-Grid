@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class JoplicaConstructorStandingsResponse {
+public class JolpicaConstructorStandingsResponse {
 
     @JsonProperty("MRData")
     private MRData mrData;

@@ -1,181 +1,281 @@
-# 🏎️ F1 Stats - Formula 1 Statistics Backend API
+# 🏎️ Formula Grid - F1 Statistics Platform
 
-A RESTful API providing real-time Formula 1 statistics, standings, race calendars, and in-depth analytics. Built with Spring Boot and MongoDB for optimal performance and scalability.
+A full-stack Formula 1 statistics platform. A **Spring Boot + MongoDB** backend pulls data from the [Jolpica F1 API](https://api.jolpi.ca/ergast/f1) (the Ergast replacement) and serves standings, race calendars, race and qualifying results, driver statistics and historical season data. A **React (Vite)** frontend consumes the API.
+
+## 🌐 Live Demo
+
+|                  | Link                                                              |
+| ---------------- | ----------------------------------------------------------------- |
+| **Frontend**     | https://formula1grid.netlify.app                                  |
+| **Backend API**  | https://formula-grid-backend-production.up.railway.app            |
+| **Health check** | https://formula-grid-backend-production.up.railway.app/api/health |
 
 ## ✨ Features
 
-### Current Features
-- 📊 **Live Driver Standings API** - Current season driver championship rankings with points and wins
-- 🏆 **Constructor Standings API** - Team championship standings and performance metrics
-- 📅 **Race Calendar API** - Complete 2024 season schedule with circuit details
-- 🗺️ **Circuit Information** - Detailed circuit data including location and track maps
-- ⏱️ **Session Times** - Practice, qualifying, and race timings for each Grand Prix
-- 💾 **Data Caching** - MongoDB caching for improved performance
-- 🔄 **Auto-sync** - Scheduled data synchronization with F1 API
-- 🛡️ **Error Handling** - Robust global exception handling
+### Backend
 
-### Upcoming Features
-- 🎮 **Prediction Game API** - Endpoints for race predictions and leaderboards
-- 🎯 **Fantasy League API** - Fantasy team management system
-- 🤖 **AI-Powered Analytics** - Race predictions and driver comparisons
-- 📈 **Historical Data** - Previous seasons statistics and trends
-- 🔔 **Live Race Updates** - Real-time race results and standings updates
-- 🔐 **Authentication** - JWT-based user authentication
+- 📊 **Driver Standings** - Championship rankings for any season, with points and wins
+- 🏆 **Constructor Standings** - Team championship standings for any season
+- 📅 **Race Calendar** - Schedule for any season with circuit details and session times
+- 🏁 **Race Results** - Full classification, grid, status, race time and fastest lap data
+- ⏱️ **Qualifying Results** - Q1, Q2 and Q3 times for every race
+- 👤 **Driver Statistics** - Career and current-season stats, win/podium/pole rates, last-5-races form
+- ⚔️ **Driver Comparison** - Head-to-head stats between two drivers
+- 📚 **Historical Seasons** - Season summaries with champions, most wins and most poles
+- 📥 **Bulk Data Import** - Import a full season, a single race, or 2020-2024 in one call
+- 💾 **MongoDB Caching** - Data is fetched from the external API once, then served from the database
+- 🛡️ **Consistent error responses** with correct HTTP status codes, and configurable **CORS**
+
+### Frontend (React + Vite)
+
+- Drivers page
+- Driver standings page
+- Constructor standings page
+
+### Planned
+
+- 🎮 Prediction game with JWT authentication and leaderboards
+- ⚡ Redis caching and scheduled data sync
+- 🤖 AI-powered race predictions and natural-language stats queries
+- 🎯 Fantasy league
+- 📅 Race calendar, results, season browser and driver statistics pages in the frontend
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Framework:** [Spring Boot 3.2](https://spring.io/projects/spring-boot)
-- **Language:** Java 17
+- **Language:** Java 25
 - **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas)
 - **HTTP Client:** Spring WebFlux (WebClient)
 - **Data Source:** [Jolpica F1 API](https://api.jolpi.ca/ergast/f1) (Ergast replacement)
 - **Build Tool:** Maven
 - **Utilities:** Lombok, Jackson
 
-### DevOps & Deployment
-- **Hosting:** [Railway](https://railway.app/)
-- **Database:** MongoDB Atlas (Free Tier)
-- **Version Control:** Git & GitHub
-- **CI/CD:** Railway Auto-deploy
+**Database:** MongoDB Atlas
 
-## 🚀 Quick Start
+**Frontend:** React, Vite
 
 ### Prerequisites
-- **Java** 17 or higher
+- **Java** 25 or higher
 - **Maven** 3.6+
 - **MongoDB Atlas** account (free)
 - **Git**
 
-### Setup Instructions
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/vj2970/Formula-Grid.git
-   cd f1-stats-backend
-   ```
-
-2. **Configure MongoDB**
-   - Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-   - Create a database user with read/write permissions
-   - Whitelist your IP address (or use 0.0.0.0/0 for development)
-   - Get your connection string
-   - Create `src/main/resources/application-dev.yml`:
-   ```yaml
-   spring:
-     data:
-       mongodb:
-         uri: mongodb+srv://username:password@cluster.mongodb.net/f1stats?retryWrites=true&w=majority
-   ```
-
-3. **Build the project**
-   ```bash
-   mvn clean install
-   ```
-
-4. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
-
-5. **API runs at:** `http://localhost:8080`
-
-6. **Test the API**
-   ```bash
-   curl http://localhost:8080/api/health
-   ```
+**Hosting:** Railway (backend), Netlify (frontend), MongoDB Atlas (database)
 
 ## 📁 Project Structure
 
 ```
-f1-stats-backend/
-├── src/main/java/com/formulagrid/
-│   ├── controller/           # REST API endpoints
-│   │   ├── DriverController.java
-│   │   ├── ConstructorController.java
-│   │   ├── RaceController.java
-│   │   └── HealthController.java
-│   ├── service/              # Business logic layer
-│   │   ├── DriverService.java
-│   │   ├── ConstructorService.java
-│   │   └── RaceService.java
-│   ├── repository/           # MongoDB repositories
-│   │   ├── DriverRepository.java
-│   │   ├── ConstructorRepository.java
-│   │   ├── RaceRepository.java
-│   │   ├── DriverStandingRepository.java
-│   │   └── ConstructorStandingRepository.java
-│   ├── model/                # Domain models
-│   │   ├── Driver.java
-│   │   ├── Constructor.java
-│   │   ├── Race.java
-│   │   ├── Circuit.java
-│   │   ├── DriverStanding.java
-│   │   └── ConstructorStanding.java
-│   ├── dto/                  # Data Transfer Objects
-│   │   ├── request/
-│   │   └── response/
-│   │       ├── ErgastDriverResponse.java
-│   │       ├── ErgastConstructorStandingsResponse.java
-│   │       ├── ErgastDriverStandingsResponse.java
-│   │       └── ErgastRaceScheduleResponse.java
-│   ├── client/               # External API clients
-│   │   └── ErgastApiClient.java
-│   ├── config/               # Configuration classes
-│   │   └── WebConfig.java
-│   └── exception/            # Exception handling
-│       ├── GlobalExceptionHandler.java
-│       ├── ResourceNotFoundException.java
-│       └── ExternalApiException.java
-├── src/main/resources/
-│   ├── application.yml       # Main configuration
-│   ├── application-dev.yml   # Development config
-│   └── application-prod.yml  # Production config
-├── src/test/                 # Unit and integration tests
-├── pom.xml                   # Maven dependencies
+Formula-Grid/
+├── backend/
+│   ├── src/main/java/com/formulagrid/FormulaGrid/
+│   │   ├── controller/
+│   │   │   ├── HealthController.java
+│   │   │   ├── DriverController.java
+│   │   │   ├── ConstructorController.java
+│   │   │   ├── RaceController.java
+│   │   │   ├── RaceResultController.java
+│   │   │   ├── QualifyingResultController.java
+│   │   │   ├── SeasonController.java
+│   │   │   └── DataImportController.java
+│   │   ├── service/
+│   │   │   ├── DriverService.java
+│   │   │   ├── ConstructorService.java
+│   │   │   ├── RaceService.java
+│   │   │   ├── RaceResultService.java
+│   │   │   ├── QualifyingResultsService.java
+│   │   │   ├── SeasonService.java
+│   │   │   └── DataImportService.java
+│   │   ├── repository/               # Spring Data MongoDB repositories
+│   │   ├── model/                    # Driver, Constructor, Race, Circuit, standings, results
+│   │   ├── dto/response/             # Jolpica response DTOs + API DTOs
+│   │   ├── client/                   # JoplicaApiClient (Jolpica HTTP client)
+│   │   ├── config/                   # WebConfig (CORS)
+│   │   └── exception/                # GlobalExceptionHandler + custom exceptions
+│   ├── src/main/resources/application.yml
+│   └── pom.xml
+├── frontend/                         # React + Vite app
+│   ├── src/
+│   ├── index.html
+│   └── package.json
 └── README.md
 ```
 
-## 🔌 API Endpoints
+## 🚀 Quick Start
 
-### Base URL
+### Prerequisites
+
+- Java 17+
+- Maven 3.6+
+- Node.js 18+
+- A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
+
+### 1. Clone
+
+```bash
+git clone https://github.com/vj2970/Formula-Grid.git
+cd Formula-Grid
 ```
-Local: http://localhost:8080
+
+### 2. Run the backend
+
+```bash
+cd backend
+
+export MONGODB_URI="mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/f1stats?retryWrites=true&w=majority"
+export PORT=8080
+export ALLOWED_ORIGINS="http://localhost:5173"
+
+mvn clean install
+mvn spring-boot:run
+```
+
+> The connection string **must include a database name** (`/f1stats` before the `?`). Without it the app fails on startup with `Database name must not be empty`.
+
+Verify:
+
+```bash
+curl http://localhost:8080/api/health
+```
+
+### 3. Run the frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Create `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:5173`.
+
+### 4. Load historical data
+
+Standings and calendars load automatically the first time they are requested. Race results and qualifying are loaded per race on first request, or in bulk with the import endpoints:
+
+```bash
+# one race (results + qualifying)
+curl -X POST http://localhost:8080/api/import/race/2023/1
+
+# a full season (calendar, standings, results, qualifying) - long-running
+curl -X POST http://localhost:8080/api/import/season/2023
+
+# 2020-2024 in the background
+curl -X POST http://localhost:8080/api/import/historical
+```
+
+## 🔌 API Reference
+
+**Base URL**
+
+```
+Local:      http://localhost:8080
 Production: https://formula-grid-backend-production.up.railway.app
+```
+
+**35 endpoints** across 8 controllers.
+
+### Health
+
+| Method | Endpoint      | Description           |
+| ------ | ------------- | --------------------- |
+| GET    | `/api/health` | Service health status |
+
+```json
+{
+  "status": "UP",
+  "timestamp": "2026-01-01T12:00:00",
+  "service": "Formula Grid API is running"
+}
 ```
 
 ### Drivers
 
-#### Get All Current Drivers
-```http
-GET /api/drivers
-```
+| Method | Endpoint                                       | Description                                   |
+| ------ | ---------------------------------------------- | --------------------------------------------- |
+| GET    | `/api/drivers`                                 | Current season drivers                        |
+| GET    | `/api/drivers/{driverId}`                      | A single driver by ID (e.g. `max_verstappen`) |
+| POST   | `/api/drivers/refresh`                         | Re-fetch current drivers from Jolpica         |
+| GET    | `/api/drivers/standings`                       | Current driver standings                      |
+| GET    | `/api/drivers/standings/{season}`              | Driver standings for any season               |
+| POST   | `/api/drivers/standings/refresh`               | Re-fetch current driver standings             |
+| GET    | `/api/drivers/{driverId}/statistics`           | Career and season statistics                  |
+| GET    | `/api/drivers/compare/{driverId1}/{driverId2}` | Head-to-head comparison                       |
 
-**Response:**
+### Constructors
+
+| Method | Endpoint                               | Description                                  |
+| ------ | -------------------------------------- | -------------------------------------------- |
+| GET    | `/api/constructors`                    | Current season constructors                  |
+| GET    | `/api/constructors/{constructorId}`    | A single constructor by ID (e.g. `red_bull`) |
+| GET    | `/api/constructors/standings`          | Current constructor standings                |
+| GET    | `/api/constructors/standings/{season}` | Constructor standings for any season         |
+| POST   | `/api/constructors/standings/refresh`  | Re-fetch current constructor standings       |
+
+### Races
+
+| Method | Endpoint              | Description                   |
+| ------ | --------------------- | ----------------------------- |
+| GET    | `/api/races`          | Current season calendar       |
+| GET    | `/api/races/{season}` | Calendar for any season       |
+| POST   | `/api/races/refresh`  | Re-fetch the current calendar |
+
+### Race Results
+
+| Method | Endpoint                                 | Description                        |
+| ------ | ---------------------------------------- | ---------------------------------- |
+| GET    | `/api/results/last`                      | Most recent race                   |
+| GET    | `/api/results/{season}/{round}`          | A specific race                    |
+| GET    | `/api/results/season/{season}`           | All results for a season           |
+| GET    | `/api/results/current`                   | All results for the current season |
+| GET    | `/api/results/driver/{driverId}`         | A driver's race history            |
+| GET    | `/api/results/driver/{driverId}/wins`    | A driver's wins                    |
+| GET    | `/api/results/driver/{driverId}/podiums` | A driver's podiums (1st to 3rd)    |
+| POST   | `/api/results/{season}/{round}/refresh`  | Re-fetch results for a race        |
+
+### Qualifying
+
+| Method | Endpoint                                   | Description                   |
+| ------ | ------------------------------------------ | ----------------------------- |
+| GET    | `/api/qualifying/{season}/{round}`         | Qualifying for a race         |
+| GET    | `/api/qualifying/driver/{driverId}`        | A driver's qualifying history |
+| GET    | `/api/qualifying/driver/{driverId}/poles`  | A driver's pole positions     |
+| POST   | `/api/qualifying/{season}/{round}/refresh` | Re-fetch qualifying           |
+
+### Seasons
+
+| Method | Endpoint                        | Description                               |
+| ------ | ------------------------------- | ----------------------------------------- |
+| GET    | `/api/seasons/{season}/summary` | Champions, most wins, most poles and more |
+| GET    | `/api/seasons/available`        | Seasons present in the database           |
+
+### Data Import
+
+| Method | Endpoint                            | Description                                                                    |
+| ------ | ----------------------------------- | ------------------------------------------------------------------------------ |
+| POST   | `/api/import/season/{season}`       | Import calendar, standings, results and qualifying for a season (long-running) |
+| POST   | `/api/import/race/{season}/{round}` | Import results and qualifying for one race                                     |
+| POST   | `/api/import/historical`            | Import 2020-2024 in a background thread                                        |
+| GET    | `/api/import/progress`              | Import status                                                                  |
+
+> ⚠️ Refresh and import endpoints are currently **unauthenticated**. They are intended for admin use and will be protected once JWT roles are added.
+
+### Example Responses
+
+**`GET /api/drivers/standings/2023`**
+
 ```json
 [
   {
-    "id": "1",
-    "driverId": "max_verstappen",
-    "code": "VER",
-    "permanentNumber": "1",
-    "givenName": "Max",
-    "familyName": "Verstappen",
-    "dateOfBirth": "1997-09-30",
-    "nationality": "Dutch"
-  }
-]
-```
-
-#### Get Driver Standings
-```http
-GET /api/drivers/standings
-```
-
-**Response:**
-```json
-[
-  {
+    "season": 2023,
     "position": 1,
     "positionText": "1",
     "points": 575,
@@ -194,291 +294,220 @@ GET /api/drivers/standings
 ]
 ```
 
-#### Refresh Driver Standings
-```http
-POST /api/drivers/standings/refresh
-```
+**`GET /api/drivers/{driverId}/statistics`**
 
-### Constructors
-
-#### Get Constructor Standings
-```http
-GET /api/constructors/standings
-```
-
-**Response:**
-```json
-[
-  {
-    "position": 1,
-    "positionText": "1",
-    "points": 860,
-    "wins": 21,
-    "constructor": {
-      "constructorId": "red_bull",
-      "name": "Red Bull",
-      "nationality": "Austrian"
-    }
-  }
-]
-```
-
-#### Refresh Constructor Standings
-```http
-POST /api/constructors/standings/refresh
-```
-
-### Races
-
-#### Get Race Calendar
-```http
-GET /api/races
-```
-
-**Response:**
-```json
-[
-  {
-    "season": 2024,
-    "round": 1,
-    "raceName": "Bahrain Grand Prix",
-    "circuit": {
-      "circuitId": "bahrain",
-      "circuitName": "Bahrain International Circuit",
-      "locality": "Sakhir",
-      "country": "Bahrain",
-      "lat": 26.0325,
-      "lng": 50.5106
-    },
-    "date": "2024-03-02",
-    "time": "15:00:00",
-    "qualifyingDate": "2024-03-01",
-    "qualifyingTime": "15:00:00"
-  }
-]
-```
-
-#### Refresh Race Calendar
-```http
-POST /api/races/refresh
-```
-
-### Health Check
-
-#### Service Health Status
-```http
-GET /api/health
-```
-
-**Response:**
 ```json
 {
-  "status": "UP",
-  "timestamp": "2024-11-10T18:00:00",
-  "service": "F1 Stats Backend"
+  "driverId": "max_verstappen",
+  "driverName": "Max Verstappen",
+  "currentTeam": "Red Bull",
+  "totalRaces": 110,
+  "totalWins": 45,
+  "totalPodiums": 70,
+  "totalPoles": 25,
+  "winRate": 40.91,
+  "podiumRate": 63.64,
+  "last5Races": 5,
+  "last5Wins": 4,
+  "last5AvgPosition": 1.4
 }
+```
+
+**`GET /api/seasons/{season}/summary`**
+
+```json
+{
+  "season": 2023,
+  "totalRaces": 22,
+  "completedRaces": 22,
+  "driverChampion": "Max Verstappen",
+  "constructorChampion": "Red Bull",
+  "differentWinners": 3,
+  "mostWinsDriver": "Max Verstappen",
+  "mostWinsCount": 19
+}
+```
+
+> Example values are illustrative. Real numbers depend on the data imported into your database.
+
+## 🧠 Data Loading and Caching
+
+- **First request per season** fetches from Jolpica and stores the result in MongoDB. Later requests are served from MongoDB.
+- **Past seasons** never change, so their cached data is kept permanently.
+- **The current season** is cached until you call the matching `POST .../refresh` endpoint. Refresh after each race (scheduled sync is on the roadmap).
+- **Race results and qualifying** are fetched per race on first request, or in bulk through the import endpoints.
+- **Season summaries** load the calendar and standings automatically. Win and pole statistics need that season's results, so run `POST /api/import/season/{season}` first.
+- Refreshing replaces data for that season only. Other seasons are untouched.
+
+## 🚦 Error Responses
+
+All errors use the same JSON shape:
+
+```json
+{
+  "timestamp": "2026-01-01T12:00:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Driver not found: max_verstapen"
+}
+```
+
+| Status | When                                                  |
+| ------ | ----------------------------------------------------- |
+| 400    | Invalid path value, e.g. `/api/results/abc/1`         |
+| 404    | Unknown driver, constructor, season or endpoint       |
+| 405    | Wrong HTTP method, e.g. `GET /api/import/race/2023/1` |
+| 503    | Jolpica is unavailable or rate-limiting the request   |
+| 500    | Unexpected server error                               |
+
+## ⚙️ Configuration
+
+### Environment variables
+
+| Variable          | Description                                      | Example                                                  |
+| ----------------- | ------------------------------------------------ | -------------------------------------------------------- |
+| `MONGODB_URI`     | MongoDB connection string (must include DB name) | `mongodb+srv://.../f1stats?...`                          |
+| `PORT`            | Server port                                      | `8080`                                                   |
+| `LOG_LEVEL`       | Application log level                            | `INFO`                                                   |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins     | `http://localhost:5173,https://formula1grid.netlify.app` |
+
+### `application.yml`
+
+```yaml
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/f1stats}
+
+server:
+  port: ${PORT:8080}
+
+logging:
+  level:
+    com.formulagrid: ${LOG_LEVEL:INFO}
+
+f1:
+  ergast-api:
+    base-url: https://api.jolpi.ca/ergast/f1
+    timeout: 5000
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173}
 ```
 
 ## 🚢 Deployment
 
-### Deploy to Railway
+### Backend on Railway
 
-1. **Create MongoDB Atlas Database**
-   - Sign up at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-   - Create a free M0 cluster
-   - Create database user with password
-   - Whitelist IP: `0.0.0.0/0` (allow from anywhere)
-   - Get connection string
+1. Push the repo to GitHub and create a Railway project from it
+2. If the backend lives in a subfolder, set the service **Root Directory** to `backend`
+3. Add the environment variables above, including the Netlify URL in `ALLOWED_ORIGINS`
+4. **Settings → Networking → Generate Domain**
+5. Test `https://<your-domain>/api/health`
 
-2. **Push Code to GitHub**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/yourusername/f1-stats-backend.git
-   git push -u origin main
-   ```
+**Troubleshooting**
 
-3. **Deploy on Railway**
-   - Create account at [railway.app](https://railway.app)
-   - Click **"New Project"** → **"Deploy from GitHub repo"**
-   - Select your repository
-   - Railway auto-detects Spring Boot
+- `Database name must not be empty` → add `/f1stats` to `MONGODB_URI`
+- Railway log-rate warnings → set `LOG_LEVEL=INFO`
+- Browser CORS errors → add the frontend's exact origin to `ALLOWED_ORIGINS`
+- HTTP 503 during an import → Jolpica is rate-limiting; wait a minute and retry
+- Special characters in the MongoDB password must be URL-encoded (`@` → `%40`)
 
-4. **Add Environment Variables**
+### Frontend on Netlify
 
-   Go to your service → **Variables** tab → Add:
-   ```
-   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/f1stats?retryWrites=true&w=majority
-   PORT=8080
-   LOG_LEVEL=INFO
-   ALLOWED_ORIGINS=http://localhost:3000
-   ```
-
-5. **Generate Domain**
-   - Go to **Settings** → **Networking**
-   - Click **"Generate Domain"**
-   - You'll get a URL like: `https://f1-stats-backend-production.up.railway.app`
-
-6. **Test Deployment**
-   ```bash
-   curl https://your-railway-url.up.railway.app/api/health
-   ```
-
-### Deploy to Render (Alternative)
-
-1. Create account at [render.com](https://render.com)
-2. **New** → **Web Service**
-3. Connect GitHub repository
-4. Configure:
-   - **Name:** f1-stats-backend
-   - **Environment:** Java
-   - **Build Command:** `./mvnw clean package -DskipTests`
-   - **Start Command:** `java -jar target/*.jar`
-   - **Instance Type:** Free
-
-5. Add Environment Variables (same as Railway)
-6. Click **"Create Web Service"**
+- Base directory: `frontend`
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Environment variable: `VITE_API_URL=https://formula-grid-backend-production.up.railway.app`
+- For client-side routing, add `frontend/public/_redirects` containing `/* /index.html 200`
 
 ## 🧪 Testing
 
-### Run Tests
 ```bash
+cd backend
 mvn test
 ```
 
-### Run Specific Test Class
+Quick smoke test against any environment:
+
 ```bash
-mvn test -Dtest=DriverServiceTest
+BASE=https://formula-grid-backend-production.up.railway.app
+curl $BASE/api/health
+curl $BASE/api/drivers/standings
+curl $BASE/api/drivers/standings/2023
+curl $BASE/api/constructors/standings/2023
+curl $BASE/api/races/2023
+curl $BASE/api/results/last
+curl $BASE/api/seasons/available
 ```
 
-### Run with Coverage
-```bash
-mvn clean test jacoco:report
-```
+## 📊 Roadmap
 
-### Integration Testing
-```bash
-mvn verify
-```
+### ✅ Phase 1: Core API
 
-### Test API with cURL
+- [x] Spring Boot + MongoDB setup
+- [x] Driver and constructor standings
+- [x] Race calendar
+- [x] Jolpica integration with MongoDB caching
+- [x] Global error handling and CORS
+- [x] Railway deployment
 
-**Health Check:**
-```bash
-curl http://localhost:8080/api/health
-```
+### ✅ Phase 2: Results and Historical Data
 
-**Get Driver Standings:**
-```bash
-curl http://localhost:8080/api/drivers/standings
-```
+- [x] Race results
+- [x] Qualifying results
+- [x] Driver statistics and comparison
+- [x] Season summaries
+- [x] Standings and calendar for any season
+- [x] Bulk import for historical seasons
 
-**Get Race Calendar:**
-```bash
-curl http://localhost:8080/api/races
-```
+### 🚧 Phase 3: Frontend
 
-**Refresh Data:**
-```bash
-curl -X POST http://localhost:8080/api/races/refresh
-```
+- [x] React + Vite setup, deployed on Netlify
+- [x] Drivers page
+- [x] Driver standings page
+- [x] Constructor standings page
+- [ ] Race calendar page
+- [ ] Race and qualifying results pages
+- [ ] Driver detail and comparison pages
+- [ ] Season browser
 
-## 📊 Development Roadmap
+### 📅 Phase 4: User Features
 
-### Phase 1: Core API ✅ (Completed)
-- [x] Spring Boot setup with MongoDB
-- [x] Driver standings endpoint
-- [x] Constructor standings endpoint
-- [x] Race calendar endpoint
-- [x] External API integration (Jolpica F1)
-- [x] Data caching with MongoDB
-- [x] Error handling & logging
-- [x] CORS configuration
-- [x] Deployment to Railway
+- [ ] JWT authentication (also protects import and refresh endpoints)
+- [ ] Prediction game and scoring
+- [ ] Leaderboards
+- [ ] Fantasy league
 
-### Phase 2: Enhanced Features 🚧 (In Progress)
-- [ ] Race results endpoint
-- [ ] Qualifying results endpoint
-- [ ] Driver details & statistics
-- [ ] Historical seasons data (2020-2024)
-- [ ] Redis caching layer
-- [ ] Scheduled data sync jobs
+### 🔮 Phase 5: Performance and AI
 
-### Phase 3: User Features 📅 (Planned)
-- [ ] User authentication (JWT)
-- [ ] User registration & login
-- [ ] Prediction game system
-- [ ] Leaderboard endpoints
-- [ ] User profile management
-- [ ] Fantasy league API
-
-### Phase 4: Advanced Analytics 🔮 (Future)
-- [ ] AI-powered race predictions
-- [ ] Driver comparison analytics
-- [ ] Historical trend analysis
-- [ ] Live race updates (WebSocket)
-- [ ] Performance metrics
-- [ ] Advanced statistics endpoints
-
-### Phase 5: Frontend Integration 🎨 (Future)
-- [ ] Build React/Next.js frontend
-- [ ] Interactive dashboards
-- [ ] Mobile-responsive design
-- [ ] Real-time updates
-- [ ] User interface for predictions
-- [ ] Mobile app (React Native)
+- [ ] Scheduled data sync for the current season
+- [ ] Redis caching
+- [ ] Retry with backoff for Jolpica rate limits
+- [ ] AI race predictions
+- [ ] Natural-language stats assistant
+- [ ] Swagger / OpenAPI docs
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add amazing feature'
-   ```
-4. **Push to branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. **Open a Pull Request**
-
-### Code Style
-- **Backend:** Follow Java conventions, use Lombok
-- **Frontend:** Use ESLint & Prettier
-- **Commits:** Use [Conventional Commits](https://www.conventionalcommits.org/)
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/amazing-feature`
+3. Commit using [Conventional Commits](https://www.conventionalcommits.org/): `git commit -m "feat: add amazing feature"`
+4. Push and open a Pull Request
 
 ## 👨‍💻 Author
 
-**Your Name**
-- GitHub: (https://github.com/vj2970)
-- LinkedIn: (https://www.linkedin.com/in/vaibhav-kumar-jha-1a68b0222/)
+**Vaibhav Jha**
+
+- GitHub: [@vj2970](https://github.com/vj2970)
+- LinkedIn: [Vaibhav Kumar Jha](https://www.linkedin.com/in/vaibhav-kumar-jha-1a68b0222/)
 - Email: vaibhavjha83@gmail.com
 
 ## 🙏 Acknowledgments
 
-- **Data Source:** [Jolpica F1 API](https://api.jolpi.ca/ergast/f1) (Ergast API replacement)
-- **Inspiration:** Formula 1 official website
-- **Icons:** [Lucide Icons](https://lucide.dev/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-
-## 📞 Support
-
-If you have any questions or issues, please:
-- 🐛 [Open an issue](https://github.com/vj2970/Formula-Grid/issues)
-- 📧 Email: vaibhavjha83@gmail.com
-
-## ⭐ Show Your Support
-
-If you like this project, please give it a ⭐ on GitHub!
+- Data from the [Jolpica F1 API](https://api.jolpi.ca/ergast/f1), the community-maintained Ergast replacement
+- Inspired by the official Formula 1 website
 
 ---
 
-**Built with ❤️ by [Vaibhav Jha]**
-
-*Last Updated: November 2024*
+⭐ If you find this project useful, consider giving it a star!

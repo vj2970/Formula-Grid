@@ -1,7 +1,7 @@
 package com.formulagrid.FormulaGrid.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.formulagrid.FormulaGrid.client.JoplicaApiClient;
+import com.formulagrid.FormulaGrid.client.JolpicaApiClient;
 import com.formulagrid.FormulaGrid.dto.response.*;
 import com.formulagrid.FormulaGrid.exception.ExternalApiException;
 import com.formulagrid.FormulaGrid.model.*;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class DriverService {
 
     private final DriverRepository driverRepository;
-    private final JoplicaApiClient joplicaApiClient;
+    private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
     private final DriverStandingRepository driverStandingRepository;
     private final ConstructorRepository constructorRepository;
@@ -34,26 +34,17 @@ public class DriverService {
     }
 
     public List<Driver> getCurrentSeasonDrivers(){
-
-        //Check for drivers in DB first
-        List<Driver> driversFromDb = driverRepository.findAll();
-        log.info("Drivers found in DB: {}", driversFromDb.size());
-        if(!driversFromDb.isEmpty()){
-            log.info("Returning {} drivers from database", driversFromDb.size());
-            return driversFromDb;
-        }
-
-        //Fetch drivers from API if not in DB
-        log.info("Fetching drivers from Joplica API");
-        return fetchAndSaveDriversFromApi();
+        return getCurrentSeasonDriverStandings().stream()
+                .map(DriverStanding::getDriver)
+                .collect(Collectors.toList());
     }
 
     public List<Driver> fetchAndSaveDriversFromApi(){
         try {
-            String response = joplicaApiClient.getCurrentSeasonDrivers().block();
-            JoplicaDriverResponse joplicaResponse = objectMapper.readValue(response, JoplicaDriverResponse.class);
+            String response = jolpicaApiClient.getCurrentSeasonDrivers().block();
+            JolpicaDriverResponse jolpicaResponse = objectMapper.readValue(response, JolpicaDriverResponse.class);
 
-            List<Driver> drivers = joplicaResponse.getMrData().getDriverTable().getDrivers().stream()
+            List<Driver> drivers = jolpicaResponse.getMrData().getDriverTable().getDrivers().stream()
                     .map(this::convertToDriver)
                     .collect(Collectors.toList());
 
@@ -63,11 +54,11 @@ public class DriverService {
             return drivers;
         } catch (Exception e) {
             log.error("Error fetching drivers from API", e);
-            throw new ExternalApiException("Failed to fetch drivers from Joplica API", e);
+            throw new ExternalApiException("Failed to fetch drivers from Jolpica API", e);
         }
     }
 
-    private Driver convertToDriver(JoplicaDriverResponse.DriverInfo driverInfo){
+    private Driver convertToDriver(JolpicaDriverResponse.DriverInfo driverInfo){
         Driver driver = new Driver();
         driver.setDriverId(driverInfo.getDriverId());
         driver.setCode(driverInfo.getCode());
@@ -88,23 +79,23 @@ public class DriverService {
             return standings;
         }
 
-        log.info("Fetching driver standings from Joplica API");
+        log.info("Fetching driver standings from Jolpica API");
         return fetchAndSaveDriverStandingsFromApi();
     }
 
     public List<DriverStanding> fetchAndSaveDriverStandingsFromApi(){
         try{
-            String response = joplicaApiClient.getCurrentSeasonDriverStandings().block();
-            JoplicaDriverStandingsResponse joplicaResponse =
-                    objectMapper.readValue(response, JoplicaDriverStandingsResponse.class);
+            String response = jolpicaApiClient.getCurrentSeasonDriverStandings().block();
+            JolpicaDriverStandingsResponse jolpicaResponse =
+                    objectMapper.readValue(response, JolpicaDriverStandingsResponse.class);
 
-            if(joplicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
+            if(jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
                 log.warn("No driver standings data available");
                 return List.of();
             }
 
-            JoplicaDriverStandingsResponse.StandingsList standingsList =
-                    joplicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
+            JolpicaDriverStandingsResponse.StandingsList standingsList =
+                    jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
             List<DriverStanding> standings = standingsList.getDriverStandings().stream()
                     .map(s -> convertToDriverStanding(s, Integer.parseInt(standingsList.getSeason()),
                     Integer.parseInt(standingsList.getRound())))
@@ -117,12 +108,12 @@ public class DriverService {
             return standings;
         } catch (Exception e) {
             log.error("Error fetching driver standings from API", e);
-            throw new ExternalApiException("Failed to fetch drivers standings from Joplica API", e);
+            throw new ExternalApiException("Failed to fetch drivers standings from Jolpica API", e);
         }
     }
 
     private DriverStanding convertToDriverStanding(
-            JoplicaDriverStandingsResponse.DriverStandingInfo standingInfo,
+            JolpicaDriverStandingsResponse.DriverStandingInfo standingInfo,
             Integer season, Integer round
     ){
         Driver driver = saveOrGetDriver(standingInfo.getDriver());
@@ -144,7 +135,7 @@ public class DriverService {
         return standing;
     }
 
-    private Driver saveOrGetDriver(JoplicaDriverResponse.DriverInfo driverInfo){
+    private Driver saveOrGetDriver(JolpicaDriverResponse.DriverInfo driverInfo){
         return driverRepository.findByDriverId(driverInfo.getDriverId())
                 .orElseGet(() -> {
                     Driver newDriver = new Driver();
@@ -161,7 +152,7 @@ public class DriverService {
                 });
     }
 
-    private Constructor saveOrGetConstructor(JoplicaConstructorStandingsResponse.ConstructorInfo constructorInfo){
+    private Constructor saveOrGetConstructor(JolpicaConstructorStandingsResponse.ConstructorInfo constructorInfo){
         return constructorRepository.findByConstructorId(constructorInfo.getConstructorId())
                 .orElseGet(() -> {
                     Constructor newConstructor = new Constructor();
@@ -175,7 +166,7 @@ public class DriverService {
 
     public DriverStatisticsDTO getDriverStatistics(String driverId){
         Driver driver = driverRepository.findByDriverId(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found: "+driverId));
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found: "+driverId));
 
         //Get all race results
         List<RaceResult> allRaces = raceResultRepository
@@ -241,7 +232,7 @@ public class DriverService {
         int last5Wins = (int) last5Races.stream()
                 .filter(r -> r.getPosition() == 1).count();
         int last5Podiums = (int) last5Races.stream()
-                .filter(r -> r.getPosition() >= 3).count();
+                .filter(r -> r.getPosition() <= 3).count();
         double last5AvgPosition = last5Races.stream()
                 .mapToInt(RaceResult::getPosition)
                 .average()

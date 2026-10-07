@@ -1,24 +1,23 @@
 spring:
-    application:
-        name: formula-grid
+  application:
+    name: formula-grid
 
-    data:
-        mongodb:
-            uri: ${MONGODB_URI:mongodb://localhost:27017/formula-grid}
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/formula-grid}
 
 server:
-    port: ${PORT:8080}
+  port: ${PORT:8080}
 
 logging:
-    level:
-        com.formulagrid: INFO
-        com.springframework.web: WARN
+  level:
+    com.formulagrid: INFO
+    com.springframework.web: WARN
 
 f1:
-    joplica-api:
-        base-url: https://api.jolpi.ca/ergast/f1/
-        timeout: 5000
+  jolpica-api:
+    base-url: https://api.jolpi.ca/ergast/f1/
+    timeout: 5000
 
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:https://formula1grid.netlify.app,http://localhost:5173,formula-grid-backend-production.up.railway.app}
-
