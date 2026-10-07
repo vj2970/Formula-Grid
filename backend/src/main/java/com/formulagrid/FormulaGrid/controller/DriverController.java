@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.formulagrid.FormulaGrid.model.Driver;
-import com.formulagrid.FormulaGrid.repository.DriverRepository;
 
 import lombok.RequiredArgsConstructor;
 
