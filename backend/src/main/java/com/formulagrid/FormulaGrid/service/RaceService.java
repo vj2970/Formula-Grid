@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Year;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,7 +25,6 @@ public class RaceService {
     private final RaceRepository raceRepository;
     private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
-    private final SeasonService seasonService;
 
     public List<Race> getCurrentSeasonRaces(){
         Integer currentSeason = Year.now().getValue();

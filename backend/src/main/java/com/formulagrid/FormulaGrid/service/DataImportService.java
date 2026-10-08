@@ -39,13 +39,7 @@ public class DataImportService {
             }
         }
 
-        log.info("Starting data import for season {}", season);
-
-        log.info("Importing race results for season {}", season);
-        raceResultService.getSeasonRaceResults(season);
-
         log.info("Successfully import data for season {}", season);
-        log.error("Error importing season {} data", season, e);
     }
 
     /**
