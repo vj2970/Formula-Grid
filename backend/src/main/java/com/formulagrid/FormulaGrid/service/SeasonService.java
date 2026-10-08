@@ -8,11 +8,12 @@ import com.formulagrid.FormulaGrid.model.RaceResult;
 import com.formulagrid.FormulaGrid.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import org.springframework.data.mongodb.core.query.Query;
+import com.formulagrid.FormulaGrid.model.Race;
+import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,19 +21,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SeasonService {
 
-    private final RaceRepository raceRepository;
+    private final RaceService raceService;
+    private final DriverService driverService;
+    private final ConstructorService constructorService;
     private final RaceResultRepository raceResultRepository;
     private final QualifyingResultRepository qualifyingResultRepository;
-    private final DriverStandingRepository driverStandingRepository;
-    private final ConstructorStandingRepository constructorStandingRepository;
+    private final MongoTemplate mongoTemplate;
 
     //Get Season Summary
     public SeasonSummaryDTO getSeasonSummary(Integer season){
-        var races = raceRepository.findBySeasonOrderByRoundAsc(season);
+        var races = raceService.getRaces(season);
+        if(races.isEmpty()){
+            throw new ResourceNotFoundException("No data found for season " + season);
+        }
+        var driverStandings = driverService.getDriverStandings(season);
+        var constructorStandings = constructorService.getConstructorStandings(season);
         var raceResults = raceResultRepository.findBySeasonOrderByRoundAscPositionAsc(season);
         var qualifyingResults = qualifyingResultRepository.findBySeasonOrderByRoundAscPositionAsc(season);
-        var driverStandings = driverStandingRepository.findBySeasonOrderByPositionAsc(season);
-        var constructorStandings = constructorStandingRepository.findBySeasonOrderByPositionAsc(season);
 
         return calculateSeasonSummary(season, races.size(), raceResults, qualifyingResults, driverStandings, constructorStandings);
     }
@@ -48,10 +53,10 @@ public class SeasonService {
 
         // Get champions
         String driverChampion = driverStandings.isEmpty() ? null :
-                driverStandings.get(0).getDriver().getGivenName() + " " + driverStandings.get(0).getDriver().getFamilyName();
+                driverStandings.getFirst().getDriver().getGivenName() + " " + driverStandings.getFirst().getDriver().getFamilyName();
 
         String constructorChampion = constructorStandings.isEmpty() ? null :
-                constructorStandings.get(0).getConstructor().getName();
+                constructorStandings.getFirst().getConstructor().getName();
 
         // Count unique drivers and constructors
         long totalDrivers = raceResults.stream()
@@ -127,10 +132,9 @@ public class SeasonService {
      * Get list of available seasons
      */
     public List<Integer> getAvailableSeasons() {
-        return raceRepository.findAll().stream()
-                .map(race -> race.getSeason())
-                .distinct()
-                .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
+        Set<Integer> seasons = new TreeSet<>(Comparator.reverseOrder());
+        seasons.addAll(mongoTemplate.findDistinct(new Query(), "season", Race.class, Integer.class));
+        seasons.addAll(mongoTemplate.findDistinct(new Query(), "season", RaceResult.class, Integer.class));
+        return new ArrayList<>(seasons);
     }
 }

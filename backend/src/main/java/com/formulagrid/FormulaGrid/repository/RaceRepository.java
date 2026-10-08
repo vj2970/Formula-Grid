@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface RaceRepository extends MongoRepository<Race, String> {
     List<Race> findBySeasonOrderByRoundAsc(Integer season);
+    void deleteBySeason(Integer season);
 }

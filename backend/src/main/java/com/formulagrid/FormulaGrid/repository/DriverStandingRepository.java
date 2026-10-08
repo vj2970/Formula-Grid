@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface DriverStandingRepository extends MongoRepository<DriverStanding, String> {
     List<DriverStanding> findBySeasonOrderByPositionAsc(Integer season);
+    void deleteBySeason(Integer season);
 }

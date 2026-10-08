@@ -4,10 +4,7 @@ import com.formulagrid.FormulaGrid.model.Race;
 import com.formulagrid.FormulaGrid.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +18,11 @@ public class RaceController {
     @GetMapping
     public ResponseEntity<List<Race>> getCurrentSeasonRaces(){
         return ResponseEntity.ok(raceService.getCurrentSeasonRaces());
+    }
+
+    @GetMapping("/{season}")
+    public ResponseEntity<List<Race>> getRaces(@PathVariable Integer season) {
+        return ResponseEntity.ok(raceService.getRaces(season));
     }
 
     @PostMapping("/refresh")

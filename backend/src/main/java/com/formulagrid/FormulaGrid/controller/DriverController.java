@@ -39,6 +39,10 @@ public class DriverController {
     public ResponseEntity<List<DriverStanding>> getCurrentSeasonDriverStandings(){
         return ResponseEntity.ok(driverService.getCurrentSeasonDriverStandings());
     }
+    @GetMapping("/standings/{season}")
+    public ResponseEntity<List<DriverStanding>> getDriverStandings(@PathVariable Integer season) {
+        return ResponseEntity.ok(driverService.getDriverStandings(season));
+    }
 
     @PostMapping("/standings/refresh")
     public ResponseEntity<List<DriverStanding>> refreshDriverStandings(){

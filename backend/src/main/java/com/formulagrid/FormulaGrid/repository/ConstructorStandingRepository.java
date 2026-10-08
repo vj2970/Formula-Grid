@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ConstructorStandingRepository extends MongoRepository<ConstructorStanding, String> {
     List<ConstructorStanding> findBySeasonOrderByPositionAsc(Integer season);
+    void deleteBySeason(Integer season);
 }

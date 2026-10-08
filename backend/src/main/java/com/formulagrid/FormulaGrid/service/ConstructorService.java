@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
+import reactor.core.publisher.Mono;
 
 import java.time.Year;
 import java.util.List;
@@ -51,33 +52,41 @@ public class ConstructorService {
         return fetchAndSaveStandingsFromApi();
     }
 
-    public List<ConstructorStanding> fetchAndSaveStandingsFromApi(){
-        try {
-            String response = jolpicaApiClient.getCurrentSeasonConstructorStandings().block();
-            JolpicaConstructorStandingsResponse jolpicaResponse =
-                    objectMapper.readValue(response, JolpicaConstructorStandingsResponse.class);
+    public List<ConstructorStanding> getConstructorStandings(Integer season){
+        List<ConstructorStanding> standings = standingRepository.findBySeasonOrderByPositionAsc(season);
+        if (!standings.isEmpty()) return standings;
+        log.info("Fetching {} constructor standings from Jolpica", season);
+        return fetchAndSaveStandings(jolpicaApiClient.getConstructorStandings(season));
+    }
 
-            if(jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
-                log.warn("No standings data available");
+    public List<ConstructorStanding> fetchAndSaveStandingsFromApi(){
+        return fetchAndSaveStandings(jolpicaApiClient.getCurrentSeasonConstructorStandings());
+    }
+
+    public List<ConstructorStanding> fetchAndSaveStandings(Mono<String> call){
+        try{
+            String response = call.block();
+            JolpicaConstructorStandingsResponse jolpicaResponse = objectMapper.readValue(response, JolpicaConstructorStandingsResponse.class);
+
+            var lists = jolpicaResponse.getMrData().getStandingsTable().getStandingsLists();
+            if(lists.isEmpty()){
+                log.warn("No Standings data available");
                 return List.of();
             }
 
-            JolpicaConstructorStandingsResponse.StandingsList standingsList =
-                    jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
+            var standingsList = lists.getFirst();
+            Integer season = Integer.parseInt(standingsList.getSeason());
+            Integer round = Integer.parseInt(standingsList.getRound());
 
             List<ConstructorStanding> standings = standingsList.getConstructorStandings().stream()
-                    .map(s -> convertToConstructorStanding(s, Integer.parseInt(standingsList.getSeason()),
-                            Integer.parseInt(standingsList.getRound())))
-                    .collect(Collectors.toList());
+                    .map(s -> convertToConstructorStanding(s, season, round))
+                    .toList();
 
-            standingRepository.deleteAll();
+            standingRepository.deleteBySeason(season);
             standingRepository.saveAll(standings);
-            log.info("Saved {} constructor standings to database", standings.size());
-
             return standings;
-
         } catch (Exception e) {
-            log.error("Error fetching constructor standings from API", e);
+            log.error("Error fetching constructor standings", e);
             throw new ExternalApiException("Failed to fetch constructor standings from Jolpica API", e);
         }
     }

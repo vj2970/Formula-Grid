@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
+import reactor.core.publisher.Mono;
 
 import java.time.Year;
 import java.util.List;
@@ -48,7 +49,8 @@ public class DriverService {
                     .map(this::convertToDriver)
                     .collect(Collectors.toList());
 
-            driverRepository.deleteAll();
+            drivers.forEach(d -> driverRepository.findByDriverId(d.getDriverId())
+                    .ifPresent(existing -> d.setId(existing.getId())));
             driverRepository.saveAll(drivers);
             log.info("Saved {} drivers to database", drivers.size());
             return drivers;
@@ -83,32 +85,42 @@ public class DriverService {
         return fetchAndSaveDriverStandingsFromApi();
     }
 
-    public List<DriverStanding> fetchAndSaveDriverStandingsFromApi(){
-        try{
-            String response = jolpicaApiClient.getCurrentSeasonDriverStandings().block();
-            JolpicaDriverStandingsResponse jolpicaResponse =
-                    objectMapper.readValue(response, JolpicaDriverStandingsResponse.class);
+    public List<DriverStanding> getDriverStandings(Integer season){
+        List<DriverStanding> standings = driverStandingRepository.findBySeasonOrderByPositionAsc(season);
+        if(!standings.isEmpty()) return standings;
+        log.info("Fetching {} driver standings from Jolpica", season);
+        return fetchAndSaveDriverStandings(jolpicaApiClient.getDriverStandings(season));
+    }
 
-            if(jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().isEmpty()){
-                log.warn("No driver standings data available");
+    public List<DriverStanding> fetchAndSaveDriverStandingsFromApi(){
+        return fetchAndSaveDriverStandings(jolpicaApiClient.getCurrentSeasonDriverStandings());
+    }
+
+    public List<DriverStanding> fetchAndSaveDriverStandings(Mono<String> call){
+        try{
+            String response = call.block();
+            JolpicaDriverStandingsResponse jolpicaResponse = objectMapper.readValue(response, JolpicaDriverStandingsResponse.class);
+
+            var lists = jolpicaResponse.getMrData().getStandingsTable().getStandingsLists();
+            if (!lists.isEmpty()) {
+                log.warn("No driver standings are available");
                 return List.of();
             }
 
-            JolpicaDriverStandingsResponse.StandingsList standingsList =
-                    jolpicaResponse.getMrData().getStandingsTable().getStandingsLists().get(0);
+            var standingsList = lists.getFirst();
+            Integer season = Integer.parseInt(standingsList.getSeason());
+            Integer round = Integer.parseInt(standingsList.getRound());
+
             List<DriverStanding> standings = standingsList.getDriverStandings().stream()
-                    .map(s -> convertToDriverStanding(s, Integer.parseInt(standingsList.getSeason()),
-                    Integer.parseInt(standingsList.getRound())))
-                    .collect(Collectors.toList());
+                    .map(s -> convertToDriverStanding(s, season, round))
+                    .toList();
 
-            driverStandingRepository.deleteAll();
+            driverStandingRepository.deleteBySeason(season);
             driverStandingRepository.saveAll(standings);
-            log.info("Saved {} driver standings to database", standings.size());
-
             return standings;
         } catch (Exception e) {
-            log.error("Error fetching driver standings from API", e);
-            throw new ExternalApiException("Failed to fetch drivers standings from Jolpica API", e);
+            log.error("Error fetching driver standings", e);
+            throw new ExternalApiException("Failed to fetch driver standings from Jolpica API", e);
         }
     }
 
@@ -165,8 +177,7 @@ public class DriverService {
     }
 
     public DriverStatisticsDTO getDriverStatistics(String driverId){
-        Driver driver = driverRepository.findByDriverId(driverId)
-                .orElseThrow(() -> new ResourceNotFoundException("Driver not found: "+driverId));
+        Driver driver = getDriverByDriverId(driverId);
 
         //Get all race results
         List<RaceResult> allRaces = raceResultRepository

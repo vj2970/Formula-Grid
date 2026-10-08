@@ -10,6 +10,7 @@ import com.formulagrid.FormulaGrid.repository.RaceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -25,6 +26,7 @@ public class RaceService {
     private final RaceRepository raceRepository;
     private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
+    private final SeasonService seasonService;
 
     public List<Race> getCurrentSeasonRaces(){
         Integer currentSeason = Year.now().getValue();
@@ -39,19 +41,31 @@ public class RaceService {
         return fetchAndSaveRacesFromApi();
     }
 
+    public List<Race> getRaces(Integer season){
+        List<Race> races = raceRepository.findBySeasonOrderByRoundAsc(season);
+        if (!races.isEmpty()) return races;
+        log.info("Fetching {} calendar from Jolpica", season);
+        return fetchAndSaveRaces(jolpicaApiClient.getSeasonRaces(season));
+    }
+
     public List<Race> fetchAndSaveRacesFromApi(){
-        try {
-            String response = jolpicaApiClient.getCurrentSeasonRaces().block();
-            JolpicaRaceScheduleResponse jolpicaResponse =
-                    objectMapper.readValue(response, JolpicaRaceScheduleResponse.class);
+        return fetchAndSaveRaces(jolpicaApiClient.getCurrentSeasonRaces());
+    }
+
+    public List<Race> fetchAndSaveRaces(Mono<String> call){
+        try{
+            String response = call.block();
+            JolpicaRaceScheduleResponse jolpicaResponse = objectMapper.readValue(response, JolpicaRaceScheduleResponse.class);
 
             List<Race> races = jolpicaResponse.getMrData().getRaceTable().getRaces().stream()
                     .map(this::converToRace)
-                    .collect(Collectors.toList());
+                    .toList();
 
-            raceRepository.deleteAll();
+            if (races.isEmpty()) return races;
+
+            raceRepository.deleteBySeason(races.getFirst().getSeason());
             raceRepository.saveAll(races);
-            log.info("Saved {} races to database", races.size());
+            log.info("Saved {} races for season {}", races.size(), races.getFirst().getSeason());
             return races;
         } catch (Exception e) {
             log.error("Error fetching races from API", e);

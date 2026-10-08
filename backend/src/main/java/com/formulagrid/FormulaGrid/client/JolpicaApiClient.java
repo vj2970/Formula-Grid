@@ -25,7 +25,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonDriverStandings(){
         return webClient.get()
-                .uri("/{current}/driverStandings.json", current)
+                .uri("/{current}/driverStandings.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching driver standings: {}", error.getMessage()));
@@ -41,7 +41,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonConstructorStandings(){
         return webClient.get()
-                .uri("/{current}/constructorStandings.json", current)
+                .uri("/{current}/constructorStandings.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching constructor standings: {}", error.getMessage()));
@@ -89,6 +89,24 @@ public class JolpicaApiClient {
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching last race results: {}", error.getMessage()));
+    }
+
+    public Mono<String> getSeasonRaces(Integer season) {
+        return webClient.get().uri("/{season}.json", season)
+                .retrieve().bodyToMono(String.class)
+                .doOnError(e -> log.error("Error fetching {} calendar: {}", season, e.getMessage()));
+    }
+
+    public Mono<String> getDriverStandings(Integer season) {
+        return webClient.get().uri("/{season}/driverStandings.json?limit=100", season)
+                .retrieve().bodyToMono(String.class)
+                .doOnError(e -> log.error("Error fetching {} driver standings: {}", season, e.getMessage()));
+    }
+
+    public Mono<String> getConstructorStandings(Integer season) {
+        return webClient.get().uri("/{season}/constructorStandings.json?limit=100", season)
+                .retrieve().bodyToMono(String.class)
+                .doOnError(e -> log.error("Error fetching {} constructor standings: {}", season, e.getMessage()));
     }
 
 

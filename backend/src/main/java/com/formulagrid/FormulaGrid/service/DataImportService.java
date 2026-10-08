@@ -15,9 +15,17 @@ public class DataImportService {
 
     private final RaceResultService raceResultService;
     private final QualifyingResultsService qualifyingResultsService;
+    private final RaceService raceService;
+    private final DriverService driverService;
+    private final ConstructorService constructorService;
 
     //Import all data for a season
     public void importSeasonData(Integer season){
+        log.info("Starting data import for season {}", season);
+
+        raceService.getRaces(season);                       // calendar
+        driverService.getDriverStandings(season);           // final standings
+        constructorService.getConstructorStandings(season);
 
         for (int round = 1; round <= 30; round++){
             List<RaceResult> results = raceResultService.getRaceResults(season, round);
@@ -33,15 +41,11 @@ public class DataImportService {
 
         log.info("Starting data import for season {}", season);
 
-        try {
-            log.info("Importing race results for season {}", season);
-            raceResultService.getSeasonRaceResults(season);
+        log.info("Importing race results for season {}", season);
+        raceResultService.getSeasonRaceResults(season);
 
-            log.info("Successfully import data for season {}", season);
-        } catch (Exception e) {
-            log.error("Error importing season {} data", season, e);
-            throw new RuntimeException("Failed to import season data", e);
-        }
+        log.info("Successfully import data for season {}", season);
+        log.error("Error importing season {} data", season, e);
     }
 
     /**
