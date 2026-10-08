@@ -105,7 +105,7 @@ Formula-Grid/
 
 ### Prerequisites
 
-- Java 17+
+- Java 25+
 - Maven 3.6+
 - Node.js 18+
 - A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
