@@ -4,7 +4,9 @@ import com.formulagrid.FormulaGrid.dto.response.ImportProgressDTO;
 import com.formulagrid.FormulaGrid.model.RaceResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import java.util.stream.IntStream;
 
 import java.util.List;
 
@@ -18,6 +20,12 @@ public class DataImportService {
     private final RaceService raceService;
     private final DriverService driverService;
     private final ConstructorService constructorService;
+
+    private volatile String importStatus = "READY";
+    private volatile String importMessage = "Data import service ready";
+    private volatile Integer currentSeason;
+    private volatile Integer totalSeasons;
+    private volatile Integer completedSeasons;
 
     //Import all data for a season
     public void importSeasonData(Integer season){
@@ -45,22 +53,48 @@ public class DataImportService {
     /**
      * Import historical seasons (2020-2024)
      */
+    @Async
     public void importHistoricalSeasons() {
-        List<Integer> seasons = List.of(2020, 2021, 2022, 2023, 2024);
+//        List<Integer> seasons = List.of(2020, 2021, 2022, 2023, 2024);
+        List<Integer> seasons = IntStream.rangeClosed(1950, 2025)
+                .boxed()
+                .toList();
 
-        log.info("Starting historical data import for seasons: {}", seasons);
+        totalSeasons = seasons.size();
+        completedSeasons = 0;
+        importStatus = "RUNNING";
+
+        log.info("Starting historical data import for {} seasons", seasons.size());
 
         for (Integer season : seasons) {
             try {
                 importSeasonData(season);
+                importMessage = "Importing season " + season;
+
+                log.info("Starting import for season {}", season);
+
+                importSeasonData(season);
+
+                completedSeasons++;
+
+                importMessage = "Completed season " + season;
+
                 log.info("Completed import for season {}", season);
 
-                // Small delay to avoid overwhelming the API
                 Thread.sleep(2000);
             } catch (Exception e) {
                 log.error("Failed to import season {}", season, e);
+
+                importStatus = "FAILED";
+                importMessage = "Failed to import season " + season;
+
+                return;
             }
         }
+
+        importStatus = "COMPLETED";
+        importMessage = "Historical data import completed";
+        currentSeason = null;
 
         log.info("Historical data import completed");
     }
@@ -92,8 +126,11 @@ public class DataImportService {
         // This would track progress in real implementation
         // For now, return basic info
         return ImportProgressDTO.builder()
-                .status("Ready")
-                .message("Data import service ready")
+                .status(importStatus)
+                .message(importMessage)
+                .currentSeason(currentSeason)
+                .totalSeasons(totalSeasons)
+                .completedSeasons(completedSeasons)
                 .build();
     }
 }
