@@ -154,20 +154,52 @@ public class DriverService {
         DriverStanding standing = new DriverStanding();
         standing.setSeason(season);
         standing.setRound(round);
-        standing.setPosition(standingInfo.getPosition() != null
-                ? Integer.parseInt(standingInfo.getPosition())
-                : null);
-        standing.setPositionText(standingInfo.getPositionText());
-        standing.setPoints(standingInfo.getPoints() != null
-                ? Double.parseDouble(standingInfo.getPoints())
-                : 0.0);
-        standing.setWins(standingInfo.getWins() != null
-                ? Integer.parseInt(standingInfo.getWins())
-                : 0);
-        standing.setDriver(driver);
+
+        standing.setPosition(
+                parseInteger(standingInfo.getPosition())
+        );
+
+        standing.setPositionText(
+                standingInfo.getPositionText()
+        );
+
+        standing.setPoints(
+                parseDouble(standingInfo.getPoints())
+        );
+
+        standing.setWins(
+                parseInteger(standingInfo.getWins())
+        );
+
         standing.setConstructor(constructor);
 
         return standing;
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse integer value: {}", value);
+            return null;
+        }
+    }
+
+    private Double parseDouble(String value) {
+        if (value == null || value.isBlank()) {
+            return 0.0;
+        }
+
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse decimal value: {}", value);
+            return 0.0;
+        }
     }
 
     private Driver saveOrGetDriver(JolpicaDriverResponse.DriverInfo driverInfo){
