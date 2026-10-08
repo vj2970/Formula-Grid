@@ -56,7 +56,7 @@ public class DataImportService {
     @Async
     public void importHistoricalSeasons() {
 //        List<Integer> seasons = List.of(2020, 2021, 2022, 2023, 2024);
-        List<Integer> seasons = IntStream.rangeClosed(1950, 2025)
+        List<Integer> seasons = IntStream.rangeClosed(2000, 2025)
                 .boxed()
                 .toList();
 
