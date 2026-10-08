@@ -113,7 +113,7 @@ public class DriverService {
             JolpicaDriverStandingsResponse jolpicaResponse = objectMapper.readValue(response, JolpicaDriverStandingsResponse.class);
 
             var lists = jolpicaResponse.getMrData().getStandingsTable().getStandingsLists();
-            if (!lists.isEmpty()) {
+            if (lists.isEmpty()) {
                 assert response != null;
                 log.warn("Jolpica returned no driver standings. Response starts with: {}",
                         response.substring(0, Math.min(300, response.length())));
