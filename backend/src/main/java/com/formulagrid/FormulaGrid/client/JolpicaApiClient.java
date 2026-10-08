@@ -33,7 +33,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonDrivers(){
         return webClient.get()
-                .uri("/{current}/drivers.json", current)
+                .uri("/{current}/drivers.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching drivers: {}", error.getMessage()));
@@ -49,7 +49,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonRaces(){
         return webClient.get()
-                .uri("/{current}.json", current)
+                .uri("/{current}.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching races: {}", error.getMessage()));
@@ -58,25 +58,16 @@ public class JolpicaApiClient {
     //Get race results for a specific season and round /2024/1/results.json
     public Mono<String> getRaceResults(Integer season, Integer round){
         return webClient.get()
-                .uri("/{season}/{round}/results.json", season, round)
+                .uri("/{season}/{round}/results.json?limit=100", season, round)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching race results: {}", error.getMessage()));
     }
 
-    //Get all race results for a season /2024/results.json
-    public Mono<String> getSeasonRaceResults(Integer season){
-        return webClient.get()
-                .uri("/{season}/results.json", season)
-                .retrieve()
-                .bodyToMono(String.class)
-                .doOnError(error -> log.error("Error fetching season race results: {}", error.getMessage()));
-    }
-
     //Get qualifying results for a specific season and round /2024/1/qualifying.json
     public Mono<String> getQualifyingResults(Integer season, Integer round){
         return webClient.get()
-                .uri("/{season}/{round}/qualifying.json", season, round)
+                .uri("/{season}/{round}/qualifying.json?limit=100", season, round)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching qualifying results: {}", error.getMessage()));
@@ -85,14 +76,14 @@ public class JolpicaApiClient {
     //Get current season last race results /current/last/results.json
     public Mono<String> getLastRaceResults(){
         return webClient.get()
-                .uri("/{current}/last/results.json", current)
+                .uri("/{current}/last/results.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching last race results: {}", error.getMessage()));
     }
 
     public Mono<String> getSeasonRaces(Integer season) {
-        return webClient.get().uri("/{season}.json", season)
+        return webClient.get().uri("/{season}.json?limit=100", season)
                 .retrieve().bodyToMono(String.class)
                 .doOnError(e -> log.error("Error fetching {} calendar: {}", season, e.getMessage()));
     }

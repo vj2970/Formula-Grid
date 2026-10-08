@@ -17,6 +17,10 @@ import com.formulagrid.FormulaGrid.repository.RaceResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.formulagrid.FormulaGrid.model.Race;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.TreeMap;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +35,7 @@ public class RaceResultService {
     private final ConstructorRepository constructorRepository;
     private final JolpicaApiClient jolpicaApiClient;
     private final ObjectMapper objectMapper;
+    private final RaceService raceService;
 
     /**
      * Get race results for a specific season and round
@@ -89,16 +94,32 @@ public class RaceResultService {
      * Get all race results for a season
      */
     public List<RaceResult> getSeasonRaceResults(Integer season){
-        List<RaceResult> results = raceResultRepository
-                .findBySeasonOrderByRoundAscPositionAsc(season);
-        if(!results.isEmpty()){
-            log.info("Returning {} race results from database for season {}",
-                    results.size(), season);
-            return results;
+        // one DB query, grouped by round
+        Map<Integer, List<RaceResult>> byRound = raceResultRepository
+                .findBySeasonOrderByRoundAscPositionAsc(season).stream()
+                .collect(Collectors.groupingBy(RaceResult::getRound, TreeMap::new, Collectors.toList()));
+
+        LocalDate today = LocalDate.now();
+        for (Race race : raceService.getRaces(season)) {
+            if (race.getDate().isAfter(today) || byRound.containsKey(race.getRound())) {
+                continue;                       // not run yet, or already cached
+            }
+            List<RaceResult> fetched = fetchAndSaveRaceResults(season, race.getRound());
+            if (!fetched.isEmpty()) {
+                byRound.put(race.getRound(), fetched);
+            }
+            pause(300);                         // be gentle with Jolpica
         }
 
-        log.info("Fetching season race results from API for season {}", season);
-        return fetchAndSaveSeasonRaceResults(season);
+        return byRound.values().stream().flatMap(List::stream).collect(Collectors.toList());
+    }
+
+    private void pause(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -165,31 +186,6 @@ public class RaceResultService {
         } catch (Exception e) {
             log.error("Error fetching race results from API", e);
             throw new ExternalApiException("Failed to fetch race results", e);
-        }
-    }
-
-    /**
-     * Fetch and save all race results for a season
-     */
-    private List<RaceResult> fetchAndSaveSeasonRaceResults(Integer season){
-        try{
-            String response = jolpicaApiClient.getSeasonRaceResults(season).block();
-            JolpicaRaceResultsResponse jolpicaResponse =
-                    objectMapper.readValue(response, JolpicaRaceResultsResponse.class);
-
-            List<RaceResult> allResults = jolpicaResponse.getMrData()
-                    .getRaceTable()
-                    .getRaces()
-                    .stream()
-                    .flatMap(raceInfo -> parseRaceResults(raceInfo).stream())
-                    .collect(Collectors.toList());
-
-            raceResultRepository.saveAll(allResults);
-            log.info("Saved {} race results for season {}", allResults.size(), season);
-            return allResults;
-        } catch (Exception e) {
-            log.error("Error fetching season race results from API", e);
-            throw new ExternalApiException("Failed to fetch season race results", e);
         }
     }
 
