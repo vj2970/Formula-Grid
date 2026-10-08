@@ -41,6 +41,11 @@ public class ConstructorController {
         return ResponseEntity.ok(constructorService.getConstructorStandings(season));
     }
 
+    @PostMapping("/standings/{season}/refresh")
+    public ResponseEntity<List<ConstructorStanding>> refreshConstructorStandingsForSeason(@PathVariable Integer season) {
+        return ResponseEntity.ok(constructorService.refreshConstructorStandingsForSeason(season));
+    }
+
     @PostMapping("/standings/refresh")
     public ResponseEntity<List<ConstructorStanding>> refreshStandings(){
         return ResponseEntity.ok(constructorService.fetchAndSaveStandingsFromApi());

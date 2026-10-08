@@ -181,7 +181,7 @@ Local:      http://localhost:8080
 Production: https://formula-grid-backend-production.up.railway.app
 ```
 
-**35 endpoints** across 8 controllers.
+**37 endpoints** across 8 controllers.
 
 ### Health
 
@@ -206,19 +206,21 @@ Production: https://formula-grid-backend-production.up.railway.app
 | POST   | `/api/drivers/refresh`                         | Re-fetch current drivers from Jolpica         |
 | GET    | `/api/drivers/standings`                       | Current driver standings                      |
 | GET    | `/api/drivers/standings/{season}`              | Driver standings for any season               |
+| POST   | `/api/drivers/standings/{season}/refresh`      | Re-fetch standings for any season             |
 | POST   | `/api/drivers/standings/refresh`               | Re-fetch current driver standings             |
 | GET    | `/api/drivers/{driverId}/statistics`           | Career and season statistics                  |
 | GET    | `/api/drivers/compare/{driverId1}/{driverId2}` | Head-to-head comparison                       |
 
 ### Constructors
 
-| Method | Endpoint                               | Description                                  |
-| ------ | -------------------------------------- | -------------------------------------------- |
-| GET    | `/api/constructors`                    | Current season constructors                  |
-| GET    | `/api/constructors/{constructorId}`    | A single constructor by ID (e.g. `red_bull`) |
-| GET    | `/api/constructors/standings`          | Current constructor standings                |
-| GET    | `/api/constructors/standings/{season}` | Constructor standings for any season         |
-| POST   | `/api/constructors/standings/refresh`  | Re-fetch current constructor standings       |
+| Method | Endpoint                                       | Description                                  |
+| ------ | ---------------------------------------------- | -------------------------------------------- |
+| GET    | `/api/constructors`                            | Current season constructors                  |
+| GET    | `/api/constructors/{constructorId}`            | A single constructor by ID (e.g. `red_bull`) |
+| GET    | `/api/constructors/standings`                  | Current constructor standings                |
+| GET    | `/api/constructors/standings/{season}`         | Constructor standings for any season         |
+| POST   | `/api/constructors/standings/{season}/refresh` | Re-fetch standings for any season            |
+| POST   | `/api/constructors/standings/refresh`          | Re-fetch current constructor standings       |
 
 ### Races
 
@@ -332,12 +334,13 @@ Production: https://formula-grid-backend-production.up.railway.app
 
 ## 🧠 Data Loading and Caching
 
-- **First request per season** fetches from Jolpica and stores the result in MongoDB. Later requests are served from MongoDB.
-- **Past seasons** never change, so their cached data is kept permanently.
-- **The current season** is cached until you call the matching `POST .../refresh` endpoint. Refresh after each race (scheduled sync is on the roadmap).
+- **First request per season** fetches from Jolpica and stores the result in MongoDB.
+- **Past seasons** are final once their standings were fetched after the season ended. Anything cached earlier is re-fetched automatically, once.
+- **The current season's standings** refresh automatically when the cached copy is older than 6 hours.
+- **If Jolpica is unavailable**, cached data is served instead of an error.
 - **Race results and qualifying** are fetched per race on first request, or in bulk through the import endpoints.
 - **Season summaries** load the calendar and standings automatically. Win and pole statistics need that season's results, so run `POST /api/import/season/{season}` first.
-- Refreshing replaces data for that season only. Other seasons are untouched.
+- **`POST .../refresh` endpoints** force a re-fetch at any time.
 
 ## 🚦 Error Responses
 

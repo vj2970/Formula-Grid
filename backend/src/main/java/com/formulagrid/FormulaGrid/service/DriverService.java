@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,21 +76,31 @@ public class DriverService {
 
     public List<DriverStanding> getCurrentSeasonDriverStandings(){
         Integer currentSeason = Year.now().getValue();
-        List<DriverStanding> standings = driverStandingRepository.findBySeasonOrderByPositionAsc(currentSeason);
-        if(!standings.isEmpty()){
-            log.info("Returning {} driver standings from database", standings.size());
-            return standings;
-        }
-
-        log.info("Fetching driver standings from Jolpica API");
-        return fetchAndSaveDriverStandingsFromApi();
+        return loadDriverStandings(currentSeason, jolpicaApiClient.getCurrentSeasonDriverStandings());
     }
 
     public List<DriverStanding> getDriverStandings(Integer season){
-        List<DriverStanding> standings = driverStandingRepository.findBySeasonOrderByPositionAsc(season);
-        if(!standings.isEmpty()) return standings;
-        log.info("Fetching {} driver standings from Jolpica", season);
+        List<DriverStanding> standings = loadDriverStandings(season, jolpicaApiClient.getDriverStandings(season));
+        if(standings.isEmpty()) throw  new ResourceNotFoundException("No driver standings available for season " + season);
+        return standings;
+    }
+
+    public List<DriverStanding> refreshDriverStandingsForSeason(Integer season){
         return fetchAndSaveDriverStandings(jolpicaApiClient.getDriverStandings(season));
+    }
+
+    public List<DriverStanding> loadDriverStandings(Integer season, Mono<String> call){
+        List<DriverStanding> cached = driverStandingRepository.findBySeasonOrderByPositionAsc(season);
+        if(!cached.isEmpty() && !CachePolicy.isStale(season, cached.getFirst().getFetchedAt())) return cached;
+        try{
+            return fetchAndSaveDriverStandings(call);
+        } catch (ExternalApiException e) {
+            if(!cached.isEmpty()){
+                log.warn("Jolpica unavailable, serving cached {} driver standings", season);
+                return cached;
+            }
+            throw e;
+        }
     }
 
     public List<DriverStanding> fetchAndSaveDriverStandingsFromApi(){
@@ -103,20 +114,26 @@ public class DriverService {
 
             var lists = jolpicaResponse.getMrData().getStandingsTable().getStandingsLists();
             if (!lists.isEmpty()) {
-                log.warn("No driver standings are available");
+                assert response != null;
+                log.warn("Jolpica returned no driver standings. Response starts with: {}",
+                        response.substring(0, Math.min(300, response.length())));
                 return List.of();
             }
 
             var standingsList = lists.getFirst();
             Integer season = Integer.parseInt(standingsList.getSeason());
             Integer round = Integer.parseInt(standingsList.getRound());
+            LocalDateTime fetchedAt = LocalDateTime.now();
 
             List<DriverStanding> standings = standingsList.getDriverStandings().stream()
                     .map(s -> convertToDriverStanding(s, season, round))
                     .toList();
+            standings.forEach(s -> s.setFetchedAt(fetchedAt));
 
             driverStandingRepository.deleteBySeason(season);
             driverStandingRepository.saveAll(standings);
+            log.info("Saved {} driver standings for season {} (after round {})",
+                    standings.size(), season, round);
             return standings;
         } catch (Exception e) {
             log.error("Error fetching driver standings", e);

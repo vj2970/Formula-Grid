@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.formulagrid.FormulaGrid.exception.ResourceNotFoundException;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,22 +42,37 @@ public class ConstructorService {
 
     public List<ConstructorStanding> getCurrentSeasonStandings(){
         Integer currentSeason = Year.now().getValue();
-
-        List<ConstructorStanding> standings = standingRepository.findBySeasonOrderByPositionAsc(currentSeason);
-        if(!standings.isEmpty()){
-            log.info("Returning {} constructor from database", standings.size());
-            return standings;
-        }
-
-        log.info("Fetching constructor standings from Jolplica API");
-        return fetchAndSaveStandingsFromApi();
+        return loadConstructorStandings(currentSeason, jolpicaApiClient.getCurrentSeasonConstructorStandings());
     }
 
     public List<ConstructorStanding> getConstructorStandings(Integer season){
-        List<ConstructorStanding> standings = standingRepository.findBySeasonOrderByPositionAsc(season);
-        if (!standings.isEmpty()) return standings;
-        log.info("Fetching {} constructor standings from Jolpica", season);
+        List<ConstructorStanding> standings = loadConstructorStandings(season, jolpicaApiClient.getConstructorStandings(season));
+        if (standings.isEmpty()) {
+            throw new ResourceNotFoundException("No constructor standings available for season " + season);
+        }
+        return standings;
+    }
+
+    public List<ConstructorStanding> refreshConstructorStandingsForSeason(Integer season){
         return fetchAndSaveStandings(jolpicaApiClient.getConstructorStandings(season));
+    }
+
+    private List<ConstructorStanding> loadConstructorStandings(Integer season, Mono<String> call) {
+        List<ConstructorStanding> cached = standingRepository.findBySeasonOrderByPositionAsc(season);
+
+        if (!cached.isEmpty() && !CachePolicy.isStale(season, cached.getFirst().getFetchedAt())) {
+            return cached;
+        }
+
+        try {
+            return fetchAndSaveStandings(call);
+        } catch (ExternalApiException e) {
+            if (!cached.isEmpty()) {
+                log.warn("Jolpica unavailable, serving cached {} constructor standings", season);
+                return cached;
+            }
+            throw e;
+        }
     }
 
     public List<ConstructorStanding> fetchAndSaveStandingsFromApi(){
@@ -70,20 +86,26 @@ public class ConstructorService {
 
             var lists = jolpicaResponse.getMrData().getStandingsTable().getStandingsLists();
             if(lists.isEmpty()){
-                log.warn("No Standings data available");
+                assert response != null;
+                log.warn("Jolpica returned no constructor standings. Response starts with: {}",
+                        response.substring(0, Math.min(300, response.length())));
                 return List.of();
             }
 
             var standingsList = lists.getFirst();
             Integer season = Integer.parseInt(standingsList.getSeason());
             Integer round = Integer.parseInt(standingsList.getRound());
+            LocalDateTime fetchedAt = LocalDateTime.now();
 
             List<ConstructorStanding> standings = standingsList.getConstructorStandings().stream()
                     .map(s -> convertToConstructorStanding(s, season, round))
                     .toList();
+            standings.forEach(s -> s.setFetchedAt(fetchedAt));
 
             standingRepository.deleteBySeason(season);
             standingRepository.saveAll(standings);
+            log.info("Saved {} constructor standings for season {} (after round {})",
+                    standings.size(), season, round);
             return standings;
         } catch (Exception e) {
             log.error("Error fetching constructor standings", e);
