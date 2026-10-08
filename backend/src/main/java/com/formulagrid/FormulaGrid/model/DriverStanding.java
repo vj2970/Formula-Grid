@@ -21,7 +21,7 @@ public class DriverStanding {
     private Integer round;
     private Integer position;
     private String positionText;
-    private Integer points;
+    private Double points;
     private Integer wins;
     private Driver driver;
     private Constructor constructor;

@@ -28,7 +28,7 @@ public class DriverStatisticsDTO {
     private Integer currentSeasonWins;
     private Integer currentSeasonPodiums;
     private Integer currentSeasonPoles;
-    private Integer currentSeasonPoints;
+    private Double currentSeasonPoints;
     private Integer currentSeasonPosition;
 
     // Performance metrics

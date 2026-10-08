@@ -147,17 +147,23 @@ public class DriverService {
     ){
         Driver driver = saveOrGetDriver(standingInfo.getDriver());
         Constructor constructor = null;
-        if(!standingInfo.getConstructor().isEmpty()){
-            constructor = saveOrGetConstructor(standingInfo.getConstructor().get(0));
+        if(standingInfo.getConstructor() != null && !standingInfo.getConstructor().isEmpty()){
+            constructor = saveOrGetConstructor(standingInfo.getConstructor().getFirst());
         }
 
         DriverStanding standing = new DriverStanding();
         standing.setSeason(season);
         standing.setRound(round);
-        standing.setPosition(Integer.parseInt(standingInfo.getPosition()));
+        standing.setPosition(standingInfo.getPosition() != null
+                ? Integer.parseInt(standingInfo.getPosition())
+                : null);
         standing.setPositionText(standingInfo.getPositionText());
-        standing.setPoints(Integer.parseInt(standingInfo.getPoints()));
-        standing.setWins(Integer.parseInt(standingInfo.getWins()));
+        standing.setPoints(standingInfo.getPoints() != null
+                ? Double.parseDouble(standingInfo.getPoints())
+                : 0.0);
+        standing.setWins(standingInfo.getWins() != null
+                ? Integer.parseInt(standingInfo.getWins())
+                : 0);
         standing.setDriver(driver);
         standing.setConstructor(constructor);
 
@@ -291,7 +297,7 @@ public class DriverService {
                 .currentSeasonWins(currentSeasonWins)
                 .currentSeasonPodiums(currentSeasonPodiums)
                 .currentSeasonPoles(currentSeasonPoles)
-                .currentSeasonPoints(currentStanding != null ? currentStanding.getPoints() : 0)
+                .currentSeasonPoints(currentStanding != null ? currentStanding.getPoints() : 0.0)
                 .currentSeasonPosition(currentStanding != null ? currentStanding.getPosition() : null)
                 .winRate(Math.round(winRate * 100.0) / 100.0)
                 .podiumRate(Math.round(podiumRate * 100.0) / 100.0)
