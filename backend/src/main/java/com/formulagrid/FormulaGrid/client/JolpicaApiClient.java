@@ -25,7 +25,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonDriverStandings(){
         return webClient.get()
-                .uri("/{current}/driverStandings.json?limit=100", current)
+                .uri("/{current}/driverstandings.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching driver standings: {}", error.getMessage()));
@@ -41,7 +41,7 @@ public class JolpicaApiClient {
 
     public Mono<String> getCurrentSeasonConstructorStandings(){
         return webClient.get()
-                .uri("/{current}/constructorStandings.json?limit=100", current)
+                .uri("/{current}/constructorstandings.json?limit=100", current)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> log.error("Error fetching constructor standings: {}", error.getMessage()));
@@ -98,13 +98,13 @@ public class JolpicaApiClient {
     }
 
     public Mono<String> getDriverStandings(Integer season) {
-        return webClient.get().uri("/{season}/driverStandings.json?limit=100", season)
+        return webClient.get().uri("/{season}/driverstandings.json?limit=100", season)
                 .retrieve().bodyToMono(String.class)
                 .doOnError(e -> log.error("Error fetching {} driver standings: {}", season, e.getMessage()));
     }
 
     public Mono<String> getConstructorStandings(Integer season) {
-        return webClient.get().uri("/{season}/constructorStandings.json?limit=100", season)
+        return webClient.get().uri("/{season}/constructorstandings.json?limit=100", season)
                 .retrieve().bodyToMono(String.class)
                 .doOnError(e -> log.error("Error fetching {} constructor standings: {}", season, e.getMessage()));
     }

@@ -81,7 +81,7 @@ public class DriverService {
 
     public List<DriverStanding> getDriverStandings(Integer season){
         List<DriverStanding> standings = loadDriverStandings(season, jolpicaApiClient.getDriverStandings(season));
-        if(standings.isEmpty()) throw  new ResourceNotFoundException("No driver standings available for season " + season);
+        if(standings.isEmpty()) throw new ResourceNotFoundException("No driver standings available for season " + season);
         return standings;
     }
 
